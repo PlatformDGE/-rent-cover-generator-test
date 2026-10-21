@@ -5,7 +5,7 @@ from PIL import Image
 from playwright.sync_api import sync_playwright
 
 SITE = "https://platformdge.github.io/-rent-cover-generator-test/"
-OUT = Path("qa/out3"); OUT.mkdir(parents=True, exist_ok=True)
+OUT = Path("qa/out4"); OUT.mkdir(parents=True, exist_ok=True)
 results = []
 
 def check(name, ok, detail=""):
@@ -19,12 +19,12 @@ def get(url):
 # ---- wait for the fresh deploy
 for _ in range(36):
     try:
-        if 'c.fillText(ch,lx2,79)' in get(SITE + "?nocache=" + str(time.time())):
+        if 'EXCLUSIVE PROPERTY' in get(SITE + "?nocache=" + str(time.time())):
             break
     except Exception:
         pass
     time.sleep(10)
-check("site deployed with latest code", 'c.fillText(ch,lx2,79)' in get(SITE + "?n=" + str(time.time())))
+check("site deployed with latest code", 'EXCLUSIVE PROPERTY' in get(SITE + "?n=" + str(time.time())))
 
 # ---- test images
 TEST = Path("qa/imgs"); TEST.mkdir(exist_ok=True)
@@ -94,7 +94,7 @@ with sync_playwright() as p:
     # 6. manual edits update both images
     page.fill("#price", "1250"); page.fill("#district", "Saburtalo"); page.wait_for_timeout(1200)
     st = page.evaluate("[state.price, state.district]")
-    check("editing fields updates covers", st == ["1250$", "Saburtalo"], st)
+    check("editing fields updates covers (price gets comma)", st == ["1,250$", "Saburtalo"], st)
     page.click("#exNo"); page.wait_for_timeout(500)
     check("exclusive toggle", page.evaluate("state.exclusive") is False)
     page.click("#exYes"); page.wait_for_timeout(500)
@@ -130,15 +130,57 @@ with sync_playwright() as p:
 
     # 10. folder name + Save as folder (zip)
     fname = page.input_value("#folder")
-    check("folder name = district + price", fname == "Saburtalo 1250$", fname)
+    check("folder name = district + price", fname == "Saburtalo 1,250$", fname)
     with page.expect_download(timeout=30000) as d:
         page.click("#wmZip")
     zp = OUT / "folder.zip"; d.value.save_as(zp)
     names = sorted(n for n in zipfile.ZipFile(zp).namelist() if not n.endswith("/"))
-    exp = sorted([f"Saburtalo 1250$/Saburtalo 1250$ {i}.jpg" for i in range(1, 9)] + ["Saburtalo 1250$/Saburtalo 1250$ cover.png", "Saburtalo 1250$/Saburtalo 1250$ youtube.jpg"])
-    check("Save as folder: zip with 8 photos + cover + YouTube", names == exp and d.value.suggested_filename == "Saburtalo 1250$.zip", names)
+    F = "Saburtalo 1,250$"
+    exp = sorted([f"{F}/{F} {i}.jpg" for i in range(1, 9)] + [f"{F}/{F} cover.png", f"{F}/{F} youtube.jpg"])
+    check("Save as folder: zip with 8 photos + cover + YouTube", names == exp and d.value.suggested_filename == f"{F}.zip", names)
     check("Save to folder on computer button (Chrome)", page.is_visible("#wmDir"))
     check("Download all button", page.is_visible("#wmAll"))
+
+
+    # 13. bedrooms singular/plural + price comma
+    page.click("#tyApt"); page.wait_for_timeout(300)
+    for typed, want in [("1", "1 BEDROOM"), ("2 bedroom", "2 BEDROOMS"), ("3 спальни", "3 BEDROOMS"), ("1 bedrooms", "1 BEDROOM")]:
+        page.fill("#beds", typed); page.wait_for_timeout(300)
+        got = page.evaluate("fmtBeds(state.bedrooms)")
+        check(f"bedrooms '{typed}' -> {want}", got == want, got)
+    page.fill("#price", "1800"); page.wait_for_timeout(500)
+    check("price 1800 -> 1,800$", page.evaluate("state.price") == "1,800$", page.evaluate("state.price"))
+
+    # 14. commercial exclusive (Georgian text like the sample)
+    page.fill("#ptext", "ექსკლუზიური! კომერციული ფართი, გლდანი, 192 კვ.მ, 1800$")
+    page.click("#parse"); page.wait_for_timeout(1000)
+    st = page.evaluate("[state.commercial, state.exclusive, state.price, state.district, state.area]")
+    check("commercial detected from text", st == [True, True, "1,800$", "Gldani", "192"], st)
+    check("Type toggle shows Commercial, bedrooms disabled", page.get_attribute("#tyCom", "aria-pressed") == "true" and page.is_disabled("#beds"))
+    img = canvas_png(page, "cv", OUT / "14_commercial_exclusive.png")
+    two = img.getpixel((382, 313)), img.getpixel((696, 313)), img.getpixel((854, 313))
+    check("commercial: 2 icons (district, m²), no bed icon", two[0][0] > 200 and two[1][0] > 200 and two[2][0] < 200, two)
+    ul = img.getpixel((540, 245))
+    check("commercial: COMMERCIAL label with red line", ul[0] > 200 and ul[1] < 100, ul)
+    rb = img.getpixel((60, 884))
+    check("commercial exclusive: red ribbon (EXCLUSIVE PROPERTY)", rb[0] > 200 and rb[1] < 100, rb)
+    canvas_png(page, "yt", OUT / "14_commercial_youtube.png")
+
+    # 15. commercial non-exclusive
+    page.fill("#ptext", "Сдается офис в Глдани 192 м2, цена 1800$")
+    page.click("#parse"); page.wait_for_timeout(1000)
+    img = canvas_png(page, "cv", OUT / "15_commercial.png")
+    rb = img.getpixel((60, 884)); ul = img.getpixel((540, 245))
+    check("commercial non-exclusive: label, no ribbon", ul[0] > 200 and not (rb[0] > 200 and rb[1] < 100), (ul, rb))
+    y = canvas_png(page, "yt", OUT / "15_commercial_youtube.png")
+    check("YouTube commercial: COMMERCIAL at top", y.getpixel((326, 85))[0] > 200, y.getpixel((326, 85)))
+
+    # 16. apartment with 1,200$ and 2 bedrooms
+    page.fill("#ptext", "Сдается 3-х комнатная квартира Ваке 90 кв.м 1 200 $")
+    page.click("#parse"); page.wait_for_timeout(1000)
+    st = page.evaluate("[state.commercial, state.price, fmtBeds(state.bedrooms)]")
+    check("apartment: 1,200$ and 2 BEDROOMS", st == [False, "1,200$", "2 BEDROOMS"], st)
+    canvas_png(page, "cv", OUT / "16_apartment.png")
 
     check("no JavaScript errors", not errors, errors[:5])
 
@@ -159,7 +201,7 @@ try:
 except Exception as e:
     check("Python script (text mode)", False, e)
 
-Path("qa/out3/report.json").write_text(json.dumps(results, ensure_ascii=False, indent=1))
+Path("qa/out4/report.json").write_text(json.dumps(results, ensure_ascii=False, indent=1))
 passed = sum(r["ok"] for r in results)
-Path("qa/out3/summary.txt").write_text(f"{passed}/{len(results)} passed\n" + "\n".join(("PASS " if r["ok"] else "FAIL ") + r["test"] + " — " + r["detail"] for r in results))
+Path("qa/out4/summary.txt").write_text(f"{passed}/{len(results)} passed\n" + "\n".join(("PASS " if r["ok"] else "FAIL ") + r["test"] + " — " + r["detail"] for r in results))
 print(f"{passed}/{len(results)} passed")
