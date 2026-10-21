@@ -1,0 +1,142 @@
+[
+ {
+  "test": "site deployed with latest code",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "test": "example cover renders 1080x1080 + YouTube 1280x720",
+  "ok": true,
+  "detail": "[1080, 1080, 1280, 720]"
+ },
+ {
+  "test": "Bebas Neue font loaded",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "test": "UI in English, no Telegram link field",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "test": "manual parse (RU, exclusive)",
+  "ok": true,
+  "detail": "{'price': '370$', 'district': 'Nadzaladevi', 'area': '52', 'beds': '1 BEDROOM'} ex=true"
+ },
+ {
+  "test": "exclusive ribbon drawn",
+  "ok": true,
+  "detail": "(224, 70, 74)"
+ },
+ {
+  "test": "YouTube: EXCLUSIVE at top with red line when exclusive",
+  "ok": true,
+  "detail": "((224, 70, 74), 255)"
+ },
+ {
+  "test": "YouTube: no ribbon on photo (as in sample)",
+  "ok": true,
+  "detail": "(163, 170, 188)"
+ },
+ {
+  "test": "manual parse (EN, not exclusive)",
+  "ok": true,
+  "detail": "{'price': '450$', 'district': 'Sololaki', 'area': '40', 'beds': '1 BEDROOM'}"
+ },
+ {
+  "test": "no ribbon when not exclusive",
+  "ok": true,
+  "detail": "(170, 177, 194)"
+ },
+ {
+  "test": "YouTube: no EXCLUSIVE when not exclusive",
+  "ok": true,
+  "detail": "(29, 52, 97)"
+ },
+ {
+  "test": "manual parse (GE)",
+  "ok": true,
+  "detail": "{'price': '900$', 'district': 'Vake', 'area': '90', 'beds': '2 BEDROOMS'}"
+ },
+ {
+  "test": "editing fields updates covers",
+  "ok": true,
+  "detail": "['1250$', 'Saburtalo']"
+ },
+ {
+  "test": "exclusive toggle",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "test": "own photo used in cover",
+  "ok": true,
+  "detail": "(119, 90, 110)"
+ },
+ {
+  "test": "YouTube: navy panel + photo on right",
+  "ok": true,
+  "detail": "((29, 52, 97), (119, 90, 110))"
+ },
+ {
+  "test": "Download PNG works",
+  "ok": true,
+  "detail": "Saburtalo 1250$ cover.png"
+ },
+ {
+  "test": "Download YouTube works",
+  "ok": true,
+  "detail": "Saburtalo 1250$ youtube.jpg"
+ },
+ {
+  "test": "watermark 8 photos",
+  "ok": true,
+  "detail": "Done: 8 photos."
+ },
+ {
+  "test": "watermarked photos keep size",
+  "ok": true,
+  "detail": "[[1600, 1200], [1200, 1600], [1080, 1080], [2560, 1920], [1600, 1200], [1200, 1600], [1080, 1080], [2560, 1920]]"
+ },
+ {
+  "test": "watermark visible in center",
+  "ok": true,
+  "detail": "211"
+ },
+ {
+  "test": "folder name = district + price",
+  "ok": true,
+  "detail": "Saburtalo 1250$"
+ },
+ {
+  "test": "Save as folder: zip with 8 photos + cover + YouTube",
+  "ok": true,
+  "detail": "['Saburtalo 1250$/Saburtalo 1250$ 1.jpg', 'Saburtalo 1250$/Saburtalo 1250$ 2.jpg', 'Saburtalo 1250$/Saburtalo 1250$ 3.jpg', 'Saburtalo 1250$/Saburtalo 1250$ 4.jpg', 'Saburtalo 1250$/Saburtalo 1250$ 5.jpg', 'Saburtalo 1250$/Saburtalo 1250$ 6.jpg', 'Saburtalo 1250$/Saburtalo 1250$ 7.jpg', 'Saburtalo 1250$/Saburtalo 1250$ 8.jpg', 'Saburtalo 1250$/Saburtalo 1250$ cover.png', 'Saburtalo 1250$/Saburtalo 1250$ youtube.jpg']"
+ },
+ {
+  "test": "Save to folder on computer button (Chrome)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "test": "Download all button",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "test": "no JavaScript errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "test": "mobile: no horizontal scroll",
+  "ok": true,
+  "detail": "390"
+ },
+ {
+  "test": "Python script (text mode)",
+  "ok": true,
+  "detail": "price:     1200$\nexclusive: True\ndistrict:  Vake\narea:      85\nbedrooms:  2 BEDROOMS\nsaved:     qa/out3/13_cli.png\n"
+ }
+]
