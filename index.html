@@ -60,6 +60,13 @@ button{font:inherit;cursor:pointer;border:0;border-radius:10px}
 .file input{position:absolute;inset:0;opacity:0;cursor:pointer}
 details summary{cursor:pointer;color:var(--muted);font-size:13px}
 details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-size:15px;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px}
+.wm{grid-column:1/-1}
+.wm h2{font:400 28px/1 var(--display);letter-spacing:.04em;margin:0}
+.wmgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.wmcard{display:grid;gap:6px;min-width:0}
+.wmcard img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;display:block;background:var(--line)}
+.wmcard a{font-size:13px;color:var(--fg);text-align:center;border:1px solid var(--line);border-radius:8px;padding:6px;text-decoration:none}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--muted);font-size:14px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -119,6 +126,17 @@ details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-si
       <a id="dl" class="primary" href="#" download="cover.png" style="text-decoration:none">Download PNG</a>
       <span class="hint">On a phone, long-press the image → Save.</span>
     </div>
+  </section>
+  <section class="panel wm" aria-label="Watermark">
+    <h2>Watermark photos</h2>
+    <p class="hint" style="margin:0">Select all the listing photos at once (e.g. 8). Each one gets the RENT IN TBILISI watermark in the center.</p>
+    <div class="actions">
+      <span class="file primary">Select photos<input id="wmFiles" type="file" accept="image/*" multiple></span>
+      <button id="wmShare" class="ghost" hidden>Save all to phone</button>
+      <button id="wmAll" class="ghost" hidden>Download all</button>
+      <span id="wmStatus" class="hint" role="status"></span>
+    </div>
+    <div id="wmGrid" class="wmgrid"><div class="empty">No photos yet. Tap “Select photos”.</div></div>
   </section>
 </div>
 
@@ -370,6 +388,81 @@ $("exNo").onclick=()=>{ state.exclusive=false; fillForm(); render(); };
 $("upload").onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
   state.photo=await loadImg(URL.createObjectURL(f)); selected=-1; drawThumbs(); render(); say("Photo replaced.");
+};
+/* ---------------- watermark ---------------- */
+function drawFlag(c,x,y,w,h){
+  c.fillStyle="#fff"; c.fillRect(x,y,w,h);
+  c.fillStyle="#e8112d";
+  const t=h*0.2; c.fillRect(x,y+h/2-t/2,w,t); c.fillRect(x+w/2-t/2,y,t,h);
+  const qw=(w-t)/2, qh=(h-t)/2, arm=Math.min(qw,qh)*0.56, th=h*0.065;
+  [[x+qw/2,y+qh/2],[x+w-qw/2,y+qh/2],[x+qw/2,y+h-qh/2],[x+w-qw/2,y+h-qh/2]].forEach(([cx,cy])=>{
+    c.fillRect(cx-arm/2,cy-th/2,arm,th); c.fillRect(cx-th/2,cy-arm/2,th,arm);
+  });
+}
+function drawWatermark(c,W,H){
+  const text="RENT IN TBILISI";
+  const markW=Math.min(W,H*1.3)*0.36;
+  c.font='100px "Bebas Neue"';
+  const sp=2, tw100=[...text].reduce((a,ch)=>a+c.measureText(ch).width,0)+sp*(text.length-1);
+  // ширина = текст + отступ + флаг (флаг: высота 0.7f, ширина 1.05f, отступ 0.22f)
+  const f=markW/((tw100/100)+0.22+1.05);
+  const fh=f*0.7, fw=f*1.05, gap=f*0.22;
+  const tw=tw100*f/100, total=tw+gap+fw;
+  const x0=(W-total)/2, top=(H-fh)/2;
+  const off=document.createElement("canvas"); off.width=W; off.height=H;
+  const o=off.getContext("2d");
+  o.fillStyle="#fff"; o.textBaseline="alphabetic";
+  let x=x0; o.font=`${f}px "Bebas Neue"`;
+  for (const ch of text){ o.fillText(ch,x,top+fh); x+=o.measureText(ch).width+sp*f/100; }
+  drawFlag(o,x0+tw+gap,top,fw,fh);
+  c.save(); c.globalAlpha=0.72; c.shadowColor="rgba(0,0,0,.28)"; c.shadowBlur=Math.max(2,f*0.06);
+  c.drawImage(off,0,0); c.restore();
+}
+let wmResults=[];
+async function watermarkFile(file){
+  const url=URL.createObjectURL(file);
+  const img=await loadImg(url);
+  const k=Math.min(1,2560/Math.max(img.width,img.height));
+  const W=Math.round(img.width*k), H=Math.round(img.height*k);
+  const c=document.createElement("canvas"); c.width=W; c.height=H;
+  const g=c.getContext("2d"); g.drawImage(img,0,0,W,H); URL.revokeObjectURL(url);
+  drawWatermark(g,W,H);
+  const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",0.92));
+  const name=(file.name.replace(/\.[^.]+$/,"")||"photo")+"_wm.jpg";
+  return {blob,name,url:URL.createObjectURL(blob)};
+}
+$("wmFiles").onchange=async e=>{
+  const files=[...e.target.files]; if(!files.length) return;
+  await document.fonts.load('100px "Bebas Neue"').catch(()=>{});
+  wmResults.forEach(r=>URL.revokeObjectURL(r.url)); wmResults=[];
+  const grid=$("wmGrid"); grid.innerHTML="";
+  for (let i=0;i<files.length;i++){
+    $("wmStatus").textContent=`Processing ${i+1} of ${files.length}…`;
+    try{
+      const r=await watermarkFile(files[i]); wmResults.push(r);
+      const card=document.createElement("div"); card.className="wmcard";
+      const im=document.createElement("img"); im.src=r.url; im.alt=r.name;
+      const a=document.createElement("a"); a.href=r.url; a.download=r.name; a.textContent="Download";
+      card.append(im,a); grid.append(card);
+    }catch(err){ /* skip unreadable file */ }
+  }
+  const n=wmResults.length;
+  $("wmStatus").textContent = n ? `Done: ${n} photo${n>1?"s":""}.` : "Couldn't read these files.";
+  $("wmAll").hidden=!n;
+  let canShare=false;
+  try{ canShare=!!(navigator.canShare && navigator.canShare({files:[new File([wmResults[0].blob],wmResults[0].name,{type:"image/jpeg"})]})); }catch(_){}
+  $("wmShare").hidden=!(n && canShare);
+  e.target.value="";
+};
+$("wmAll").onclick=async()=>{
+  for (const r of wmResults){
+    const a=document.createElement("a"); a.href=r.url; a.download=r.name; document.body.append(a); a.click(); a.remove();
+    await new Promise(res=>setTimeout(res,350));
+  }
+};
+$("wmShare").onclick=async()=>{
+  const files=wmResults.map(r=>new File([r.blob],r.name,{type:"image/jpeg"}));
+  try{ await navigator.share({files}); }catch(_){}
 };
 fillForm(); render();
 </script>
