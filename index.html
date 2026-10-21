@@ -102,6 +102,11 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px}
         <button id="exYes" aria-pressed="true">Yes</button>
         <button id="exNo" aria-pressed="false">No</button>
       </div>
+      <span class="hint" style="margin:0 4px 0 12px">Type</span>
+      <div class="seg" role="group" aria-label="Property type">
+        <button id="tyApt" aria-pressed="true">Apartment</button>
+        <button id="tyCom" aria-pressed="false">Commercial</button>
+      </div>
     </div>
 
     <div style="display:grid;gap:8px">
@@ -174,10 +179,29 @@ const DISTRICTS = {
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
 const digits = s => (s.replace(/\D/g,"").replace(/^0+/,"") || "0");
 const bedLabel = n => n===0 ? "STUDIO" : `${n} BEDROOM${n>1?"S":""}`;
+// "1800$" / "1800" / "1 800 $" -> "1,800$"; "1500 GEL" -> "1,500 GEL"
+function fmtPrice(v){
+  v=(v||"").trim(); if(!v) return "";
+  const m=v.match(/^([\d\s.,\u00a0]+)\s*(\$|usd|gel|₾|лари|€|eur)?$/i) || v.match(/^(\$)\s*([\d\s.,]+)$/);
+  if(!m) return v.toUpperCase();
+  let numPart=m[1], cur=m[2]||"$";
+  if (m[1]==="$"){ numPart=m[2]; cur="$"; }
+  const n=parseInt(digits(numPart),10); if(isNaN(n)) return v.toUpperCase();
+  cur=cur.toLowerCase(); cur = cur==="$"||cur==="usd" ? "$" : (cur==="€"||cur==="eur" ? "€" : " GEL");
+  return n.toLocaleString("en-US")+cur;
+}
+// "2 bedroom", "2", "2 спальни" -> "2 BEDROOMS"; "1 bedrooms" -> "1 BEDROOM"
+function fmtBeds(v){
+  v=(v||"").trim(); if(!v) return "";
+  if (/^(studio|студия|0)$/i.test(v)) return "STUDIO";
+  const m=v.match(/^(\d+)\s*(bed\p{L}*|спал\p{L}*|საძინებ\p{L}*|br)?\s*$/iu);
+  return m ? bedLabel(+m[1]) : v.toUpperCase();
+}
 
 function extract(text){
   const low = text.toLowerCase(), out = {};
   out.exclusive = /эксклюзив|exclusive|ექსკლუზ/.test(low);
+  out.commercial = /коммерч|commercial|კომერც|офис|office|магазин|retail|склад|warehouse|торгов|სავაჭრო|ოფის/.test(low);
 
   const num = "(\\d{1,3}(?:[ \\u00a0.,]\\d{3})+|\\d{2,6})";
   const pats = [
@@ -186,7 +210,7 @@ function extract(text){
   ];
   const priceLines = low.split("\n").filter(l=>/цена|стоимость|price|ფას|rent|аренд/.test(l));
   outer: for (const scope of [priceLines,[low]]) for (const chunk of scope) for (const [p,cur] of pats){
-    const m = chunk.match(new RegExp(p)); if (m){ out.price = digits(m[1])+cur; break outer; }
+    const m = chunk.match(new RegExp(p)); if (m){ out.price = fmtPrice(digits(m[1])+cur); break outer; }
   }
 
   let m = low.match(/(\d{2,4}(?:[.,]\d+)?)\s*(?:м²|м2|м\^2|кв\.?\s*м\S*|кв\.?(?=\s|$|[,.;])|квадрат\S*|m²|m2|sq\.?\s*m|sqm|კვ\.?\s*მ?)/)
@@ -215,7 +239,7 @@ function extract(text){
 /* ---------------- render ---------------- */
 const S = 1080, NAVY="#24335f", RED="#e0464a", WHITE="#fff";
 const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
-const state = {price:"450$", district:"Sololaki", area:"40", bedrooms:"1 BEDROOM", exclusive:true, photo:null, name:"cover"};
+const state = {price:"450$", district:"Sololaki", area:"40", bedrooms:"1 BEDROOM", exclusive:true, commercial:false, photo:null, name:"cover"};
 
 function spaced(text, x, y, font, spacing, align){
   ctx.font = font; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
@@ -266,18 +290,21 @@ function drawCover(st, img){
   ctx.fillStyle="rgba(120,120,120,.78)"; ctx.fillRect(0,256,S,156);
   if (st.exclusive){ ctx.fillStyle=RED; ctx.fillRect(0,856,S,56); }
 
-  const price=(st.price||"").toUpperCase();
-  if (price){ ctx.fillStyle=WHITE; const sz=fitSize(price,900,250,6); spaced(price,S/2,st.exclusive?194:204,`${sz}px "Bebas Neue"`,6,"center"); }
-  if (st.exclusive){
-    ctx.fillStyle=WHITE; const w=spaced("EXCLUSIVE",S/2,238,'32px "Bebas Neue"',3,"center");
-    ctx.fillStyle=RED; ctx.fillRect(S/2-w/2,244,w,4);
+  const price=fmtPrice(st.price);
+  const label = st.commercial ? "COMMERCIAL" : (st.exclusive ? "EXCLUSIVE" : "");
+  if (price){ ctx.fillStyle=WHITE; const sz=fitSize(price,900,250,6); spaced(price,S/2,label?194:204,`${sz}px "Bebas Neue"`,6,"center"); }
+  if (label){
+    ctx.fillStyle=WHITE; const w=spaced(label,S/2,238,'32px "Bebas Neue"',3,"center");
+    ctx.fillStyle=RED; ctx.fillRect(S/2-w/2-8,244,w+16,4);
   }
-  const xs=[226,540,854]; iconPin(xs[0],313); iconM2(xs[1],313); iconBed(xs[2],313);
-  [st.district,st.area,st.bedrooms].forEach((l,i)=>{
+  let xs, labels;
+  if (st.commercial){ xs=[382,696]; iconPin(xs[0],313); iconM2(xs[1],313); labels=[st.district,st.area]; }
+  else { xs=[226,540,854]; iconPin(xs[0],313); iconM2(xs[1],313); iconBed(xs[2],313); labels=[st.district,st.area,fmtBeds(st.bedrooms)]; }
+  labels.forEach((l,i)=>{
     l=(l||"").toUpperCase(); if(!l) return;
     ctx.fillStyle=WHITE; const sz=fitSize(l,320,40,2); spaced(l,xs[i],400,`${sz}px "Bebas Neue"`,2,"center");
   });
-  if (st.exclusive){ ctx.fillStyle=WHITE; spaced("EXCLUSIVE APARTMENT",209,899,'42px "Bebas Neue"',4,"left"); }
+  if (st.exclusive){ ctx.fillStyle=WHITE; spaced(st.commercial?"EXCLUSIVE PROPERTY":"EXCLUSIVE APARTMENT",209,899,'42px "Bebas Neue"',4,"left"); }
 }
 
 /* ---------------- UI ---------------- */
@@ -289,6 +316,8 @@ function say(msg, err){ status.textContent=msg; status.classList.toggle("err",!!
 function fillForm(){
   $("price").value=state.price||""; $("district").value=state.district||""; $("area").value=state.area||""; $("beds").value=state.bedrooms||"";
   $("exYes").setAttribute("aria-pressed",state.exclusive); $("exNo").setAttribute("aria-pressed",!state.exclusive);
+  $("tyApt").setAttribute("aria-pressed",!state.commercial); $("tyCom").setAttribute("aria-pressed",state.commercial);
+  $("beds").disabled=state.commercial;
 }
 let ytObjUrl=null;
 function drawYouTube(st,img){
@@ -301,7 +330,7 @@ function drawYouTube(st,img){
     const g=c.createLinearGradient(P,0,W,H); g.addColorStop(0,"#b9bfcf"); g.addColorStop(1,"#8c93a8");
     c.fillStyle=g; c.fillRect(P,0,W-P,H);
   }
-  const cx=P/2, price=(st.price||"").toUpperCase();
+  const cx=P/2, price=fmtPrice(st.price);
   c.fillStyle="#fff"; c.textBaseline="alphabetic"; c.textAlign="left";
   if (price){
     let sz=210; const sp=4;
@@ -310,9 +339,10 @@ function drawYouTube(st,img){
     let x=cx-width(sz)/2; c.font=`${sz}px "Bebas Neue"`;
     for (const ch of price){ c.fillText(ch,x,370+sz*0.35); x+=c.measureText(ch).width+sp; }
   }
-  if (st.exclusive){
-    // EXCLUSIVE сверху панели, с красной чертой
-    c.font='28px "Bebas Neue"'; const sp2=4.5, lbl="EXCLUSIVE";
+  const ytLabel = st.exclusive ? "EXCLUSIVE" : (st.commercial ? "COMMERCIAL" : "");
+  if (ytLabel){
+    // EXCLUSIVE / COMMERCIAL сверху панели, с красной чертой
+    c.font='28px "Bebas Neue"'; const sp2=4.5, lbl=ytLabel;
     const lw=[...lbl].reduce((t,ch)=>t+c.measureText(ch).width,0)+sp2*(lbl.length-1);
     let lx2=cx+8-lw/2; c.fillStyle="#fff";
     for (const ch of lbl){ c.fillText(ch,lx2,79); lx2+=c.measureText(ch).width+sp2; }
@@ -357,9 +387,9 @@ function drawThumbs(){
   });
 }
 function applyParsed(p){
-  state.price=p.price||""; state.district=p.district||""; state.area=p.area||""; state.bedrooms=p.bedrooms||""; state.exclusive=!!p.exclusive;
+  state.price=p.price||""; state.district=p.district||""; state.area=p.area||""; state.bedrooms=p.bedrooms||""; state.exclusive=!!p.exclusive; state.commercial=!!p.commercial;
   fillForm();
-  const miss=[["price","price"],["district","district"],["area","area"],["bedrooms","bedrooms"]].filter(([k])=>!state[k]).map(([,n])=>n);
+  const miss=[["price","price"],["district","district"],["area","area"],["bedrooms","bedrooms"]].filter(([k])=>!state[k] && !(k==="bedrooms" && state.commercial)).map(([,n])=>n);
   return miss;
 }
 
@@ -367,13 +397,15 @@ $("parse").onclick=()=>{ const miss=applyParsed(extract($("ptext").value)); rend
 [["price","price"],["district","district"],["area","area"],["beds","bedrooms"]].forEach(([id,k])=>{
   $(id).addEventListener("input",()=>{
     let v=$(id).value.trim();
-    if (k==="bedrooms" && /^\d+$/.test(v)) v=bedLabel(+v);
-    if (k==="price" && /^\d[\d\s]*$/.test(v)) v=digits(v)+"$";
+    if (k==="bedrooms") v=fmtBeds(v);
+    if (k==="price") v=fmtPrice(v);
     state[k]=v; render();
   });
 });
 $("exYes").onclick=()=>{ state.exclusive=true; fillForm(); render(); };
 $("exNo").onclick=()=>{ state.exclusive=false; fillForm(); render(); };
+$("tyApt").onclick=()=>{ state.commercial=false; fillForm(); render(); };
+$("tyCom").onclick=()=>{ state.commercial=true; fillForm(); render(); };
 $("upload").onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
   state.photo=await loadImg(URL.createObjectURL(f)); selected=-1; drawThumbs(); render(); say("Photo replaced.");
