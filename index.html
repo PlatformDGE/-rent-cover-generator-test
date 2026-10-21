@@ -6,6 +6,7 @@
 <title>Apartment Cover Maker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Golos+Text:wght@400;500;600&display=swap">
 <style>
 /* Layout: one column on phones, form left + preview right on desktop */
@@ -133,6 +134,14 @@ details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-si
     <div class="actions">
       <span class="file primary">Select photos<input id="wmFiles" type="file" accept="image/*" multiple></span>
       <button id="wmShare" class="ghost" hidden>Save all to phone</button>
+    </div>
+    <div id="folderBox" class="actions" hidden>
+      <label for="folder" style="flex:1;min-width:200px">Folder name
+        <input id="folder" type="text" placeholder="Vake 450$">
+      </label>
+      <label class="hint" style="display:flex;align-items:center;gap:6px;align-self:end;padding-bottom:10px"><input id="incCover" type="checkbox" checked> Include cover</label>
+      <button id="wmZip" class="primary" style="align-self:end">Save as folder</button>
+      <button id="wmDir" class="ghost" style="align-self:end" hidden>Save to folder on computer</button>
       <button id="wmAll" class="ghost" hidden>Download all</button>
       <span id="wmStatus" class="hint" role="status"></span>
     </div>
@@ -452,6 +461,7 @@ $("wmFiles").onchange=async e=>{
   let canShare=false;
   try{ canShare=!!(navigator.canShare && navigator.canShare({files:[new File([wmResults[0].blob],wmResults[0].name,{type:"image/jpeg"})]})); }catch(_){}
   $("wmShare").hidden=!(n && canShare);
+  $("folderBox").hidden=!n; refreshFolder();
   e.target.value="";
 };
 $("wmAll").onclick=async()=>{
@@ -464,7 +474,56 @@ $("wmShare").onclick=async()=>{
   const files=wmResults.map(r=>new File([r.blob],r.name,{type:"image/jpeg"}));
   try{ await navigator.share({files}); }catch(_){}
 };
-fillForm(); render();
+/* ---------------- save as folder ---------------- */
+const safeName = s => (s||"").replace(/[\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim();
+function autoFolder(){
+  const d=(state.district||"").trim(), p=(state.price||"").trim();
+  return safeName([d,p].filter(Boolean).join(" ")) || "Apartment";
+}
+let folderTouched=false;
+$("folder").addEventListener("input",()=>{ folderTouched=true; });
+function refreshFolder(){ if(!folderTouched) $("folder").value=autoFolder(); }
+["price","district"].forEach(id=>$(id).addEventListener("input",refreshFolder));
+const _applyParsed=applyParsed;
+applyParsed=function(p){ const r=_applyParsed(p); folderTouched=false; refreshFolder(); return r; };
+function coverBlob(){ return new Promise(r=>cv.toBlob(r,"image/png")); }
+async function folderFiles(){
+  const name=safeName($("folder").value)||autoFolder();
+  const files=wmResults.map((r,i)=>({name:`${name} ${i+1}.jpg`, blob:r.blob}));
+  if ($("incCover").checked){ drawCover(state,state.photo); files.unshift({name:`${name} cover.png`, blob:await coverBlob()}); }
+  return {name, files};
+}
+$("wmZip").onclick=async()=>{
+  if (typeof JSZip==="undefined"){ $("wmStatus").textContent="Couldn't load the zip tool. Check the connection and reload."; return; }
+  $("wmZip").disabled=true; $("wmStatus").textContent="Packing…";
+  try{
+    const {name,files}=await folderFiles();
+    const zip=new JSZip(), dir=zip.folder(name);
+    files.forEach(f=>dir.file(f.name,f.blob));
+    const blob=await zip.generateAsync({type:"blob",compression:"STORE"});
+    const fname=`${name}.zip`, url=URL.createObjectURL(blob);
+    const file=new File([blob],fname,{type:"application/zip"});
+    let shared=false;
+    if (/iPhone|iPad|Android/i.test(navigator.userAgent) && navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file]}); shared=true; }catch(_){ shared=true; }
+    }
+    if (!shared){ const a=document.createElement("a"); a.href=url; a.download=fname; document.body.append(a); a.click(); a.remove(); }
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+    $("wmStatus").textContent=`Saved “${fname}”. Open it in Files to get the folder “${name}”.`;
+  }catch(e){ $("wmStatus").textContent="Couldn't create the folder: "+(e.message||e); }
+  finally{ $("wmZip").disabled=false; }
+};
+if (window.showDirectoryPicker) $("wmDir").hidden=false;
+$("wmDir").onclick=async()=>{
+  try{
+    const parent=await window.showDirectoryPicker({mode:"readwrite"});
+    const {name,files}=await folderFiles();
+    const dir=await parent.getDirectoryHandle(name,{create:true});
+    for (const f of files){ const h=await dir.getFileHandle(f.name,{create:true}); const w=await h.createWritable(); await w.write(f.blob); await w.close(); }
+    $("wmStatus").textContent=`Saved ${files.length} files to folder “${name}”.`;
+  }catch(e){ if(e.name!=="AbortError") $("wmStatus").textContent="Couldn't save to folder: "+(e.message||e); }
+};
+fillForm(); render(); refreshFolder();
 </script>
 </body>
 </html>
