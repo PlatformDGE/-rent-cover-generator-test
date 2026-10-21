@@ -138,12 +138,7 @@ def fetch_tg_post(link: str) -> Listing:
     page = r.text
 
     text = ""
-    m = re.search(
-        r'<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>\s*(?:<div class="tgme_widget_message_footer|<div class="tgme_widget_message_reply|$)',
-        page, flags=re.S,
-    )
-    if not m:
-        m = re.search(r'<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>', page, flags=re.S)
+    m = re.search(r'<div class="tgme_widget_message_text js-message_text"[^>]*>(.*?)</div>', page, flags=re.S)
     if m:
         text = _html_to_text(m.group(1))
 

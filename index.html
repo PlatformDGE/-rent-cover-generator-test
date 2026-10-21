@@ -221,22 +221,24 @@ function extract(text){
 }
 
 /* ---------------- fetching the post ---------------- */
-const PROXIES = [
-  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
-  u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
-  u => `https://thingproxy.freeboard.io/fetch/${u}`
+// источники по очереди: напрямую, Jina Reader, allorigins (raw и json)
+const SOURCES = [
+  {url:u=>u},
+  {url:u=>`https://r.jina.ai/${u}`, headers:{"X-Return-Format":"html"}, textOnly:true},
+  {url:u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`},
+  {url:u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, json:true, textOnly:true},
 ];
 async function fetchVia(url, asBlob){
-  try { const r = await fetch(url); if (r.ok) return asBlob ? await r.blob() : await r.text(); } catch(e){}
   let lastErr;
-  for (const p of PROXIES){
+  for (const src of SOURCES){
+    if (asBlob && src.textOnly) continue;
     try {
-      const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 15000);
-      const r = await fetch(p(url), {signal:ctl.signal}); clearTimeout(t);
+      const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 20000);
+      const r = await fetch(src.url(url), {signal:ctl.signal, headers:src.headers||{}}); clearTimeout(t);
       if (!r.ok) throw new Error(r.status);
-      const v = asBlob ? await r.blob() : await r.text();
-      if (asBlob ? v.size > 1000 : v.length > 200) return v;
+      if (asBlob){ const b = await r.blob(); if (b.size > 1000) return b; continue; }
+      const v = src.json ? ((await r.json()).contents || "") : await r.text();
+      if (v.includes("tgme_widget_message")) return v;
     } catch(e){ lastErr = e; }
   }
   throw lastErr || new Error("network");
@@ -251,7 +253,7 @@ async function fetchPost(link){
   const [ch,id] = parseLink(link);
   const html = await fetchVia(`https://t.me/${ch}/${id}?embed=1&mode=tme`, false);
   const doc = new DOMParser().parseFromString(html,"text/html");
-  const tEl = doc.querySelector(".tgme_widget_message_text");
+  const tEl = doc.querySelector(".tgme_widget_message_text.js-message_text") || doc.querySelector(".tgme_widget_message_text:not(.js-message_reply_text)");
   let text = "";
   if (tEl){ tEl.querySelectorAll("br").forEach(b=>b.replaceWith("\n")); text = tEl.textContent.trim(); }
   const photos = [];
