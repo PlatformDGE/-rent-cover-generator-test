@@ -127,6 +127,11 @@ details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-si
       <a id="dl" class="primary" href="#" download="cover.png" style="text-decoration:none">Download PNG</a>
       <span class="hint">On a phone, long-press the image → Save.</span>
     </div>
+    <span class="hint" style="margin-top:8px">YouTube thumbnail · 1280×720</span>
+    <img id="ytOut" alt="YouTube thumbnail" style="aspect-ratio:16/9">
+    <div class="actions">
+      <a id="ytDl" class="primary" href="#" download="youtube.jpg" style="text-decoration:none">Download YouTube</a>
+    </div>
   </section>
   <section class="panel wm" aria-label="Watermark">
     <h2>Watermark photos</h2>
@@ -139,7 +144,7 @@ details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-si
       <label for="folder" style="flex:1;min-width:200px">Folder name
         <input id="folder" type="text" placeholder="Vake 450$">
       </label>
-      <label class="hint" style="display:flex;align-items:center;gap:6px;align-self:end;padding-bottom:10px"><input id="incCover" type="checkbox" checked> Include cover</label>
+      <label class="hint" style="display:flex;align-items:center;gap:6px;align-self:end;padding-bottom:10px"><input id="incCover" type="checkbox" checked> Include covers (Instagram + YouTube)</label>
       <button id="wmZip" class="primary" style="align-self:end">Save as folder</button>
       <button id="wmDir" class="ghost" style="align-self:end" hidden>Save to folder on computer</button>
       <button id="wmAll" class="ghost" hidden>Download all</button>
@@ -150,6 +155,7 @@ details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-si
 </div>
 
 <canvas id="cv" width="1080" height="1080" hidden></canvas>
+<canvas id="yt" width="1280" height="720" hidden></canvas>
 
 <script>
 "use strict";
@@ -335,9 +341,43 @@ function fillForm(){
   $("price").value=state.price||""; $("district").value=state.district||""; $("area").value=state.area||""; $("beds").value=state.bedrooms||"";
   $("exYes").setAttribute("aria-pressed",state.exclusive); $("exNo").setAttribute("aria-pressed",!state.exclusive);
 }
+let ytObjUrl=null;
+function drawYouTube(st,img){
+  const c=document.getElementById("yt").getContext("2d"), W=1280, H=720, P=622;
+  c.fillStyle="#1d3461"; c.fillRect(0,0,W,H);
+  if (img){
+    const pw=W-P, k=Math.max(pw/img.width,H/img.height), w=img.width*k, h=img.height*k;
+    c.save(); c.beginPath(); c.rect(P,0,pw,H); c.clip(); c.drawImage(img,P+(pw-w)/2,(H-h)/2,w,h); c.restore();
+  } else {
+    const g=c.createLinearGradient(P,0,W,H); g.addColorStop(0,"#b9bfcf"); g.addColorStop(1,"#8c93a8");
+    c.fillStyle=g; c.fillRect(P,0,W-P,H);
+  }
+  const cx=P/2, price=(st.price||"").toUpperCase();
+  c.fillStyle="#fff"; c.textBaseline="alphabetic"; c.textAlign="left";
+  if (price){
+    let sz=210; const sp=4;
+    const width=f=>{ c.font=`${f}px "Bebas Neue"`; return [...price].reduce((a,ch)=>a+c.measureText(ch).width,0)+sp*(price.length-1); };
+    while (sz>40 && width(sz)>P-80) sz-=4;
+    let x=cx-width(sz)/2; c.font=`${sz}px "Bebas Neue"`;
+    for (const ch of price){ c.fillText(ch,x,370+sz*0.35); x+=c.measureText(ch).width+sp; }
+  }
+  // логотип RENT / IN + флаг / TBILISI
+  const f=31, cap=f*0.7, lh=cap+5;
+  c.font=`${f}px "Bebas Neue"`;
+  const tw=c.measureText("TBILISI").width, inW=c.measureText("IN").width;
+  const lx=cx+7-tw/2, base=632;
+  c.fillText("RENT",lx,base); c.fillText("IN",lx,base+lh); c.fillText("TBILISI",lx,base+lh*2);
+  drawFlag(c,lx+inW+2,base+lh-cap,tw-inW-2,cap);
+}
 async function render(){
   await document.fonts.load('250px "Bebas Neue"').catch(()=>{});
   drawCover(state, state.photo);
+  drawYouTube(state, state.photo);
+  document.getElementById("yt").toBlob(b=>{
+    if (!b) return;
+    if (ytObjUrl) URL.revokeObjectURL(ytObjUrl);
+    ytObjUrl=URL.createObjectURL(b); $("ytOut").src=ytObjUrl; $("ytDl").href=ytObjUrl; $("ytDl").download=`${state.name}_youtube.jpg`;
+  },"image/jpeg",0.93);
   cv.toBlob(b=>{
     if (!b) return;
     if (lastObjUrl) URL.revokeObjectURL(lastObjUrl);
@@ -490,7 +530,11 @@ function coverBlob(){ return new Promise(r=>cv.toBlob(r,"image/png")); }
 async function folderFiles(){
   const name=safeName($("folder").value)||autoFolder();
   const files=wmResults.map((r,i)=>({name:`${name} ${i+1}.jpg`, blob:r.blob}));
-  if ($("incCover").checked){ drawCover(state,state.photo); files.unshift({name:`${name} cover.png`, blob:await coverBlob()}); }
+  if ($("incCover").checked){
+    drawYouTube(state,state.photo);
+    files.unshift({name:`${name} youtube.jpg`, blob:await new Promise(r=>document.getElementById("yt").toBlob(r,"image/jpeg",0.93))});
+    drawCover(state,state.photo); files.unshift({name:`${name} cover.png`, blob:await coverBlob()});
+  }
   return {name, files};
 }
 $("wmZip").onclick=async()=>{
