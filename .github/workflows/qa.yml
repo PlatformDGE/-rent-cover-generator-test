@@ -18,6 +18,6 @@ jobs:
         continue-on-error: true
       - if: always()
         run: |
-          mkdir -p qa/out2 && cp qa_log.txt qa/out2/ || true
+          mkdir -p qa/out3 && cp qa_log.txt qa/out3/ || true
           git config user.name qa-bot; git config user.email qa-bot@users.noreply.github.com
-          git add -f qa/out2 && git commit -m "qa results" && git pull --rebase && git push
+          git add -f qa/out3 && git commit -m "qa results" && git pull --rebase && git push

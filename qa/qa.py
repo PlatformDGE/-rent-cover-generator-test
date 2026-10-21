@@ -5,7 +5,7 @@ from PIL import Image
 from playwright.sync_api import sync_playwright
 
 SITE = "https://platformdge.github.io/-rent-cover-generator-test/"
-OUT = Path("qa/out2"); OUT.mkdir(parents=True, exist_ok=True)
+OUT = Path("qa/out3"); OUT.mkdir(parents=True, exist_ok=True)
 results = []
 
 def check(name, ok, detail=""):
@@ -19,12 +19,12 @@ def get(url):
 # ---- wait for the fresh deploy
 for _ in range(36):
     try:
-        if 'rt="EXCLUSIVE APARTMENT"' in get(SITE + "?nocache=" + str(time.time())):
+        if 'c.fillText(ch,lx2,79)' in get(SITE + "?nocache=" + str(time.time())):
             break
     except Exception:
         pass
     time.sleep(10)
-check("site deployed with latest code", 'rt="EXCLUSIVE APARTMENT"' in get(SITE + "?n=" + str(time.time())))
+check("site deployed with latest code", 'c.fillText(ch,lx2,79)' in get(SITE + "?n=" + str(time.time())))
 
 # ---- test images
 TEST = Path("qa/imgs"); TEST.mkdir(exist_ok=True)
@@ -68,8 +68,10 @@ with sync_playwright() as p:
     r, g, b = img.getpixel((60, 884))
     check("exclusive ribbon drawn", r > 200 and g < 100, (r, g, b))
     y = canvas_png(page, "yt", OUT / "03_youtube_exclusive.png")
-    yr = y.getpixel((660, 597))
-    check("YouTube: EXCLUSIVE ribbon when exclusive", yr[0] > 200 and yr[1] < 100, yr)
+    ul = y.getpixel((326, 85)); top = max(y.getpixel((x, 70))[1] for x in range(250, 400))
+    check("YouTube: EXCLUSIVE at top with red line when exclusive", ul[0] > 200 and ul[1] < 100 and top > 200, (ul, top))
+    rb = y.getpixel((660, 597))
+    check("YouTube: no ribbon on photo (as in sample)", not (rb[0] > 200 and rb[1] < 100), rb)
 
     # 4. manual — non exclusive EN
     page.fill("#ptext", "For rent: 1 bedroom apartment in Sololaki\nArea: 40 m2\nPrice 450 USD")
@@ -80,8 +82,8 @@ with sync_playwright() as p:
     check("manual parse (EN, not exclusive)", vals == {"price": "450$", "district": "Sololaki", "area": "40", "beds": "1 BEDROOM"} and page.get_attribute("#exNo", "aria-pressed") == "true", vals)
     check("no ribbon when not exclusive", not (r > 200 and g < 100), (r, g, b))
     y = canvas_png(page, "yt", OUT / "04_youtube_non_exclusive.png")
-    yr = y.getpixel((660, 597))
-    check("YouTube: no ribbon when not exclusive", not (yr[0] > 200 and yr[1] < 100), yr)
+    ul = y.getpixel((326, 85))
+    check("YouTube: no EXCLUSIVE when not exclusive", not (ul[0] > 200 and ul[1] < 100), ul)
 
     # 5. Georgian text
     page.fill("#ptext", "ექსკლუზიური! ვაკე, 2 საძინებელი, 90 კვ.მ, $900")
@@ -132,7 +134,7 @@ with sync_playwright() as p:
     with page.expect_download(timeout=30000) as d:
         page.click("#wmZip")
     zp = OUT / "folder.zip"; d.value.save_as(zp)
-    names = sorted(zipfile.ZipFile(zp).namelist())
+    names = sorted(n for n in zipfile.ZipFile(zp).namelist() if not n.endswith("/"))
     exp = sorted([f"Saburtalo 1250$/Saburtalo 1250$ {i}.jpg" for i in range(1, 9)] + ["Saburtalo 1250$/Saburtalo 1250$ cover.png", "Saburtalo 1250$/Saburtalo 1250$ youtube.jpg"])
     check("Save as folder: zip with 8 photos + cover + YouTube", names == exp and d.value.suggested_filename == "Saburtalo 1250$.zip", names)
     check("Save to folder on computer button (Chrome)", page.is_visible("#wmDir"))
@@ -157,7 +159,7 @@ try:
 except Exception as e:
     check("Python script (text mode)", False, e)
 
-Path("qa/out2/report.json").write_text(json.dumps(results, ensure_ascii=False, indent=1))
+Path("qa/out3/report.json").write_text(json.dumps(results, ensure_ascii=False, indent=1))
 passed = sum(r["ok"] for r in results)
-Path("qa/out2/summary.txt").write_text(f"{passed}/{len(results)} passed\n" + "\n".join(("PASS " if r["ok"] else "FAIL ") + r["test"] + " — " + r["detail"] for r in results))
+Path("qa/out3/summary.txt").write_text(f"{passed}/{len(results)} passed\n" + "\n".join(("PASS " if r["ok"] else "FAIL ") + r["test"] + " — " + r["detail"] for r in results))
 print(f"{passed}/{len(results)} passed")
