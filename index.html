@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Обложка квартиры</title>
+<title>Apartment Cover Maker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Golos+Text:wght@400;500;600&display=swap">
 <style>
-/* Layout: одна колонка на телефоне, форма слева + превью справа на десктопе */
+/* Layout: one column on phones, form left + preview right on desktop */
 :root{
   --navy:#24335f; --red:#e0464a; --bg:#f3f4f8; --card:#ffffff; --fg:#1b2033;
   --muted:#5f6680; --line:#d9dce7; --field:#f7f8fb;
@@ -66,58 +66,58 @@ details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-si
 <body>
 <div class="wrap">
   <header>
-    <h1>Обложка <span>квартиры</span></h1>
-    <p>Вставьте ссылку на пост из Telegram — получите картинку 1080×1080 для Instagram и Facebook.</p>
+    <h1>Apartment <span>Cover</span></h1>
+    <p>Paste a Telegram post link and get a 1080×1080 image for Instagram and Facebook.</p>
   </header>
 
-  <section class="panel" aria-label="Данные">
-    <label for="link">Ссылка на пост
+  <section class="panel" aria-label="Details">
+    <label for="link">Post link
       <div class="row">
-        <input id="link" type="url" inputmode="url" placeholder="https://t.me/канал/123" autocomplete="off">
-        <button id="go" class="primary">Сделать</button>
+        <input id="link" type="url" inputmode="url" placeholder="https://t.me/channel/123" autocomplete="off">
+        <button id="go" class="primary">Generate</button>
       </div>
     </label>
-    <p id="status" class="status" role="status">Пример ниже. Вставьте свою ссылку.</p>
+    <p id="status" class="status" role="status">Example shown. Paste your own link.</p>
 
     <details id="manual">
-      <summary>Закрытый канал или ссылка не открывается? Вставьте текст поста</summary>
-      <textarea id="ptext" placeholder="Текст объявления…"></textarea>
+      <summary>Private channel or link not opening? Paste the post text</summary>
+      <textarea id="ptext" placeholder="Listing text…"></textarea>
       <div class="actions" style="margin-top:8px">
-        <button id="parse" class="ghost">Разобрать текст</button>
+        <button id="parse" class="ghost">Read text</button>
       </div>
     </details>
 
     <hr class="sep">
 
     <div class="grid2">
-      <label for="price">Цена<input id="price" type="text" placeholder="370$"></label>
-      <label for="district">Район<input id="district" type="text" placeholder="Vake"></label>
-      <label for="area">Площадь, м²<input id="area" type="text" inputmode="decimal" placeholder="52"></label>
-      <label for="beds">Спальни<input id="beds" type="text" placeholder="1 BEDROOM"></label>
+      <label for="price">Price<input id="price" type="text" placeholder="370$"></label>
+      <label for="district">District<input id="district" type="text" placeholder="Vake"></label>
+      <label for="area">Area, m²<input id="area" type="text" inputmode="decimal" placeholder="52"></label>
+      <label for="beds">Bedrooms<input id="beds" type="text" placeholder="1 BEDROOM"></label>
     </div>
 
     <div class="actions">
-      <span class="hint" style="margin-right:4px">Эксклюзив</span>
-      <div class="seg" role="group" aria-label="Эксклюзив">
-        <button id="exYes" aria-pressed="true">Да</button>
-        <button id="exNo" aria-pressed="false">Нет</button>
+      <span class="hint" style="margin-right:4px">Exclusive</span>
+      <div class="seg" role="group" aria-label="Exclusive">
+        <button id="exYes" aria-pressed="true">Yes</button>
+        <button id="exNo" aria-pressed="false">No</button>
       </div>
     </div>
 
     <div style="display:grid;gap:8px">
-      <span class="hint">Фото</span>
+      <span class="hint">Photo</span>
       <div id="thumbs" class="thumbs"></div>
       <div class="actions">
-        <span class="file ghost">Загрузить своё фото<input id="upload" type="file" accept="image/*"></span>
+        <span class="file ghost">Upload your own photo<input id="upload" type="file" accept="image/*"></span>
       </div>
     </div>
   </section>
 
-  <section class="preview" aria-label="Превью">
-    <img id="out" alt="Готовая обложка">
+  <section class="preview" aria-label="Preview">
+    <img id="out" alt="Finished cover">
     <div class="actions">
-      <a id="dl" class="primary" href="#" download="cover.png" style="text-decoration:none">Скачать PNG</a>
-      <span class="hint">На телефоне можно просто зажать картинку → «Сохранить».</span>
+      <a id="dl" class="primary" href="#" download="cover.png" style="text-decoration:none">Download PNG</a>
+      <span class="hint">On a phone, long-press the image → Save.</span>
     </div>
   </section>
 </div>
@@ -126,7 +126,7 @@ details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-si
 
 <script>
 "use strict";
-/* ---------------- районы ---------------- */
+/* ---------------- districts ---------------- */
 const DISTRICTS = {
   "Didi Dighomi":["диди дигоми","didi dighomi","didi digomi","დიდი დიღომი"],
   "Old Tbilisi":["старый тбилиси","old tbilisi","ძველი თბილისი","старый город","old town"],
@@ -187,7 +187,7 @@ function extract(text){
   return out;
 }
 
-/* ---------------- загрузка поста ---------------- */
+/* ---------------- fetching the post ---------------- */
 const PROXIES = [
   u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
   u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
@@ -209,9 +209,9 @@ async function fetchVia(url, asBlob){
   throw lastErr || new Error("network");
 }
 function parseLink(link){
-  if (/t\.me\/c\/\d+/.test(link)) throw new Error("Это закрытый канал (t.me/c/…). Вставьте текст поста ниже и загрузите фото.");
+  if (/t\.me\/c\/\d+/.test(link)) throw new Error("This is a private channel (t.me/c/…). Paste the post text below and upload a photo.");
   const m = link.match(/t(?:elegram)?\.me\/(?:s\/)?([A-Za-z0-9_]{4,})\/(\d+)/);
-  if (!m) throw new Error("Нужна ссылка вида https://t.me/канал/123");
+  if (!m) throw new Error("Link must look like https://t.me/channel/123");
   return [m[1], m[2]];
 }
 async function fetchPost(link){
@@ -226,11 +226,11 @@ async function fetchPost(link){
     const mm = (el.getAttribute("style")||"").match(/url\(['"]?([^'")]+)['"]?\)/); if (mm) photos.push(mm[1]);
   });
   if (!photos.length){ const og = doc.querySelector('meta[property="og:image"]'); if (og) photos.push(og.content); }
-  if (!text && !photos.length) throw new Error("Пост не найден: канал закрытый или пост удалён.");
+  if (!text && !photos.length) throw new Error("Post not found: the channel is private or the post was deleted.");
   return {text, photos, name:`${ch}_${id}`};
 }
 
-/* ---------------- рендер ---------------- */
+/* ---------------- render ---------------- */
 const S = 1080, NAVY="#24335f", RED="#e0464a", WHITE="#fff";
 const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
 const state = {price:"450$", district:"Sololaki", area:"40", bedrooms:"1 BEDROOM", exclusive:true, photo:null, name:"cover"};
@@ -279,7 +279,7 @@ function drawCover(st, img){
     const g=ctx.createLinearGradient(0,H,S,S); g.addColorStop(0,"#b9bfcf"); g.addColorStop(1,"#8c93a8");
     ctx.fillStyle=g; ctx.fillRect(0,H,S,ph);
     ctx.fillStyle="rgba(255,255,255,.75)"; ctx.textAlign="center"; ctx.font='32px "Golos Text",sans-serif';
-    ctx.fillText("Здесь будет фото из поста", S/2, 660);
+    ctx.fillText("Post photo goes here", S/2, 660);
   }
   ctx.fillStyle="rgba(120,120,120,.78)"; ctx.fillRect(0,256,S,156);
   if (st.exclusive){ ctx.fillStyle=RED; ctx.fillRect(0,856,S,56); }
@@ -326,37 +326,37 @@ async function getPhoto(url){
 function drawThumbs(){
   const box=$("thumbs"); box.innerHTML="";
   photoUrls.forEach((u,i)=>{
-    const b=document.createElement("button"); b.type="button"; b.setAttribute("aria-pressed",i===selected); b.setAttribute("aria-label",`Фото ${i+1}`);
+    const b=document.createElement("button"); b.type="button"; b.setAttribute("aria-pressed",i===selected); b.setAttribute("aria-label",`Photo ${i+1}`);
     const im=document.createElement("img"); im.alt=""; im.referrerPolicy="no-referrer"; im.src=u; b.append(im);
-    b.onclick=async()=>{ selected=i; drawThumbs(); try{ say("Загружаю фото…"); state.photo=await getPhoto(u); say("Готово."); render(); }catch(e){ say("Не удалось загрузить это фото — загрузите своё.",true);} };
+    b.onclick=async()=>{ selected=i; drawThumbs(); try{ say("Loading photo…"); state.photo=await getPhoto(u); say("Done."); render(); }catch(e){ say("Couldn't load this photo — upload your own.",true);} };
     box.append(b);
   });
 }
 function applyParsed(p){
   state.price=p.price||""; state.district=p.district||""; state.area=p.area||""; state.bedrooms=p.bedrooms||""; state.exclusive=!!p.exclusive;
   fillForm();
-  const miss=[["price","цена"],["district","район"],["area","площадь"],["bedrooms","спальни"]].filter(([k])=>!state[k]).map(([,n])=>n);
+  const miss=[["price","price"],["district","district"],["area","area"],["bedrooms","bedrooms"]].filter(([k])=>!state[k]).map(([,n])=>n);
   return miss;
 }
 
 $("go").onclick = async ()=>{
-  const link=$("link").value.trim(); if(!link){ say("Вставьте ссылку на пост.",true); return; }
-  $("go").disabled=true; say("Читаю пост…");
+  const link=$("link").value.trim(); if(!link){ say("Paste a post link.",true); return; }
+  $("go").disabled=true; say("Reading post…");
   try{
     const post=await fetchPost(link);
     state.name=post.name; $("ptext").value=post.text;
     const miss=applyParsed(extract(post.text));
     photoUrls=post.photos; selected=0; drawThumbs(); state.photo=null;
-    if (photoUrls.length){ say("Загружаю фото…"); try{ state.photo=await getPhoto(photoUrls[0]); }catch(e){ say("Фото не загрузилось — нажмите «Загрузить своё фото».",true); } }
+    if (photoUrls.length){ say("Loading photo…"); try{ state.photo=await getPhoto(photoUrls[0]); }catch(e){ say("Photo didn't load — tap Upload your own photo.",true); } }
     await render();
-    if (!status.classList.contains("err")) say(miss.length ? `Готово. Не нашлось: ${miss.join(", ")} — впишите вручную.` : "Готово. Проверьте поля и скачайте картинку.", miss.length>0);
+    if (!status.classList.contains("err")) say(miss.length ? `Done. Not found: ${miss.join(", ")} — fill in manually.` : "Done. Check the fields and download the image.", miss.length>0);
   }catch(e){
     $("manual").open=true;
-    say(e.message && !/^\d+$|network|abort|fetch/i.test(e.message) ? e.message : "Не получилось открыть пост. Вставьте текст поста ниже и загрузите фото.", true);
+    say(e.message && !/^\d+$|network|abort|fetch/i.test(e.message) ? e.message : "Couldn't open the post. Paste the post text below and upload a photo.", true);
   }finally{ $("go").disabled=false; }
 };
 $("link").addEventListener("keydown",e=>{ if(e.key==="Enter") $("go").click(); });
-$("parse").onclick=()=>{ const miss=applyParsed(extract($("ptext").value)); render(); say(miss.length?`Не нашлось: ${miss.join(", ")} — впишите вручную.`:"Готово.", miss.length>0); };
+$("parse").onclick=()=>{ const miss=applyParsed(extract($("ptext").value)); render(); say(miss.length?`Not found: ${miss.join(", ")} — fill in manually.`:"Done.", miss.length>0); };
 [["price","price"],["district","district"],["area","area"],["beds","bedrooms"]].forEach(([id,k])=>{
   $(id).addEventListener("input",()=>{
     let v=$(id).value.trim();
@@ -369,7 +369,7 @@ $("exYes").onclick=()=>{ state.exclusive=true; fillForm(); render(); };
 $("exNo").onclick=()=>{ state.exclusive=false; fillForm(); render(); };
 $("upload").onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
-  state.photo=await loadImg(URL.createObjectURL(f)); selected=-1; drawThumbs(); render(); say("Фото заменено.");
+  state.photo=await loadImg(URL.createObjectURL(f)); selected=-1; drawThumbs(); render(); say("Photo replaced.");
 };
 fillForm(); render();
 </script>
