@@ -292,7 +292,11 @@ function drawCover(st, img){
 
   const price=fmtPrice(st.price);
   const label = st.commercial ? "COMMERCIAL" : (st.exclusive ? "EXCLUSIVE" : "");
-  if (price){ ctx.fillStyle=WHITE; const sz=fitSize(price,900,250,6); spaced(price,S/2,label?194:204,`${sz}px "Bebas Neue"`,6,"center"); }
+  if (price){
+    const comma = price.includes(",") && label;   // хвост запятой не должен задевать подпись
+    ctx.fillStyle=WHITE; const sz=fitSize(price,900,comma?215:250,6);
+    spaced(price,S/2,label?(comma?182:194):204,`${sz}px "Bebas Neue"`,6,"center");
+  }
   if (label){
     ctx.fillStyle=WHITE; const w=spaced(label,S/2,238,'32px "Bebas Neue"',3,"center");
     ctx.fillStyle=RED; ctx.fillRect(S/2-w/2-8,244,w+16,4);
@@ -349,6 +353,7 @@ function drawYouTube(st,img){
     c.fillStyle="#e0464a"; c.fillRect(cx+8-lw/2-2,83,lw+4,5);
   }
   // логотип RENT / IN + флаг / TBILISI
+  c.fillStyle="#fff";
   const f=31, cap=f*0.7, lh=cap+5;
   c.font=`${f}px "Bebas Neue"`;
   const tw=c.measureText("TBILISI").width, inW=c.measureText("IN").width;
