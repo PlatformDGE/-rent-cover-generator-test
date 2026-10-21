@@ -1,0 +1,23 @@
+name: qa
+on:
+  push:
+    branches: [qa]
+    paths: [qa/qa.py, .github/workflows/qa.yml]
+permissions:
+  contents: write
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt playwright && python -m playwright install --with-deps chromium
+      - run: python qa/qa.py 2>&1 | tee qa_log.txt
+        continue-on-error: true
+      - if: always()
+        run: |
+          mkdir -p qa/out && cp qa_log.txt qa/out/ || true
+          git config user.name qa-bot; git config user.email qa-bot@users.noreply.github.com
+          git add -f qa/out && git commit -m "qa results" && git pull --rebase && git push
