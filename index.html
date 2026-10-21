@@ -311,16 +311,12 @@ function drawYouTube(st,img){
     for (const ch of price){ c.fillText(ch,x,370+sz*0.35); x+=c.measureText(ch).width+sp; }
   }
   if (st.exclusive){
-    // EXCLUSIVE под ценой
-    c.font='40px "Bebas Neue"'; const sp2=4, lbl="EXCLUSIVE";
+    // EXCLUSIVE сверху панели, с красной чертой
+    c.font='28px "Bebas Neue"'; const sp2=4.5, lbl="EXCLUSIVE";
     const lw=[...lbl].reduce((t,ch)=>t+c.measureText(ch).width,0)+sp2*(lbl.length-1);
-    let lx2=cx-lw/2; c.fillStyle="#fff";
-    for (const ch of lbl){ c.fillText(ch,lx2,508); lx2+=c.measureText(ch).width+sp2; }
-    c.fillStyle="#e0464a"; c.fillRect(cx-lw/2,516,lw,5);
-    // красная лента на фото
-    c.fillStyle="#e0464a"; c.fillRect(P,566,W-P,62);
-    c.font='46px "Bebas Neue"'; c.fillStyle="#fff"; let rx=P+34; const rt="EXCLUSIVE APARTMENT";
-    for (const ch of rt){ c.fillText(ch,rx,613); rx+=c.measureText(ch).width+4; }
+    let lx2=cx+8-lw/2; c.fillStyle="#fff";
+    for (const ch of lbl){ c.fillText(ch,lx2,79); lx2+=c.measureText(ch).width+sp2; }
+    c.fillStyle="#e0464a"; c.fillRect(cx+8-lw/2-2,83,lw+4,5);
   }
   // логотип RENT / IN + флаг / TBILISI
   const f=31, cap=f*0.7, lh=cap+5;
