@@ -1,0 +1,34 @@
+PASS site deployed with latest code
+PASS example cover renders 1080x1080 + YouTube 1280x720 — [1080, 1080, 1280, 720]
+PASS Bebas Neue font loaded
+PASS UI in English, no Telegram link field
+PASS manual parse (RU, exclusive) — {'price': '370$', 'district': 'Nadzaladevi', 'area': '52', 'beds': '1 BEDROOM'} ex=true
+PASS exclusive ribbon drawn — (224, 70, 74)
+FAIL YouTube: EXCLUSIVE ribbon when exclusive — (255, 255, 255)
+PASS manual parse (EN, not exclusive) — {'price': '450$', 'district': 'Sololaki', 'area': '40', 'beds': '1 BEDROOM'}
+PASS no ribbon when not exclusive — (170, 177, 194)
+PASS YouTube: no ribbon when not exclusive — (163, 170, 188)
+PASS manual parse (GE) — {'price': '900$', 'district': 'Vake', 'area': '90', 'beds': '2 BEDROOMS'}
+PASS editing fields updates covers — ['1250$', 'Saburtalo']
+PASS exclusive toggle
+PASS own photo used in cover — (119, 90, 110)
+PASS YouTube: navy panel + photo on right — ((29, 52, 97), (119, 90, 110))
+PASS Download PNG works — Saburtalo 1250$ cover.png
+PASS Download YouTube works — Saburtalo 1250$ youtube.jpg
+PASS watermark 8 photos — Done: 8 photos.
+PASS watermarked photos keep size — [[1600, 1200], [1200, 1600], [1080, 1080], [2560, 1920], [1600, 1200], [1200, 1600], [1080, 1080], [2560, 1920]]
+PASS watermark visible in center — 211
+PASS folder name = district + price — Saburtalo 1250$
+FAIL Save as folder: zip with 8 photos + cover + YouTube — ['Saburtalo 1250$/', 'Saburtalo 1250$/Saburtalo 1250$ 1.jpg', 'Saburtalo 1250$/Saburtalo 1250$ 2.jpg', 'Saburtalo 1250$/Saburtalo 1250$ 3.jpg', 'Saburtalo 1250$/Saburtalo 1250$ 4.jpg', 'Saburtalo 1250
+PASS Save to folder on computer button (Chrome)
+PASS Download all button
+PASS no JavaScript errors
+PASS mobile: no horizontal scroll — 390
+PASS Python script (text mode) — price:     1200$
+exclusive: True
+district:  Vake
+area:      85
+bedrooms:  2 BEDROOMS
+saved:     qa/out2/13_cli.png
+
+25/27 passed
