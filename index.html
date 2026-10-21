@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Обложка квартиры</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: одна колонка на телефоне, форма слева + превью справа на десктопе */
+:root{
+  --navy:#24335f; --red:#e0464a; --bg:#f3f4f8; --card:#ffffff; --fg:#1b2033;
+  --muted:#5f6680; --line:#d9dce7; --field:#f7f8fb;
+  --display:"Bebas Neue",Impact,"Arial Narrow",sans-serif;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#12151f; --card:#1b1f2d; --fg:#eceef5; --muted:#9aa1b8; --line:#2c3247; --field:#151927; --navy:#3a4c86;
+  color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:max(20px,env(safe-area-inset-top,0px)) 40px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.wrap{grid-template-columns:minmax(0,420px) minmax(0,1fr);align-items:start}}
+header{grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font:400 40px/1 var(--display);letter-spacing:.04em;margin:0;color:var(--fg)}
+h1 span{color:var(--red)}
+header p{margin:0;color:var(--muted)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:16px;min-width:0}
+label{display:grid;gap:6px;font-size:13px;font-weight:500;color:var(--muted)}
+input[type=text],input[type=number],input[type=url]{width:100%;font:inherit;font-size:16px;color:var(--fg);background:var(--field);
+  border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+input:focus-visible,button:focus-visible,.seg button:focus-visible{outline:3px solid color-mix(in srgb,var(--red) 55%,transparent);outline-offset:1px}
+.row{display:flex;gap:8px}
+.row input{flex:1;min-width:0}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px}
+.primary{background:var(--red);color:#fff;font-weight:600;padding:11px 18px;white-space:nowrap}
+.primary:disabled{opacity:.6;cursor:wait}
+.ghost{background:transparent;color:var(--fg);border:1px solid var(--line);padding:10px 14px}
+.status{font-size:13px;min-height:1.2em;color:var(--muted);margin:0}
+.status.err{color:var(--red)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{background:var(--field);color:var(--muted);padding:9px 14px;border-radius:0;font-weight:500}
+.seg button[aria-pressed=true]{background:var(--navy);color:#fff}
+.thumbs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.thumbs button{flex:0 0 auto;width:64px;height:64px;padding:0;border-radius:8px;overflow:hidden;border:2px solid transparent;background:var(--field)}
+.thumbs button[aria-pressed=true]{border-color:var(--red)}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.sep{border:0;border-top:1px solid var(--line);margin:0}
+.preview{display:grid;gap:12px;min-width:0}
+.preview img{width:100%;max-width:100%;aspect-ratio:1/1;border-radius:12px;display:block;background:var(--line);box-shadow:0 8px 30px rgba(20,25,45,.15)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.file{position:relative;overflow:hidden;display:inline-flex}
+.file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+details summary{cursor:pointer;color:var(--muted);font-size:13px}
+details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-size:15px;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Обложка <span>квартиры</span></h1>
+    <p>Вставьте ссылку на пост из Telegram — получите картинку 1080×1080 для Instagram и Facebook.</p>
+  </header>
+
+  <section class="panel" aria-label="Данные">
+    <label for="link">Ссылка на пост
+      <div class="row">
+        <input id="link" type="url" inputmode="url" placeholder="https://t.me/канал/123" autocomplete="off">
+        <button id="go" class="primary">Сделать</button>
+      </div>
+    </label>
+    <p id="status" class="status" role="status">Пример ниже. Вставьте свою ссылку.</p>
+
+    <details id="manual">
+      <summary>Закрытый канал или ссылка не открывается? Вставьте текст поста</summary>
+      <textarea id="ptext" placeholder="Текст объявления…"></textarea>
+      <div class="actions" style="margin-top:8px">
+        <button id="parse" class="ghost">Разобрать текст</button>
+      </div>
+    </details>
+
+    <hr class="sep">
+
+    <div class="grid2">
+      <label for="price">Цена<input id="price" type="text" placeholder="370$"></label>
+      <label for="district">Район<input id="district" type="text" placeholder="Vake"></label>
+      <label for="area">Площадь, м²<input id="area" type="text" inputmode="decimal" placeholder="52"></label>
+      <label for="beds">Спальни<input id="beds" type="text" placeholder="1 BEDROOM"></label>
+    </div>
+
+    <div class="actions">
+      <span class="hint" style="margin-right:4px">Эксклюзив</span>
+      <div class="seg" role="group" aria-label="Эксклюзив">
+        <button id="exYes" aria-pressed="true">Да</button>
+        <button id="exNo" aria-pressed="false">Нет</button>
+      </div>
+    </div>
+
+    <div style="display:grid;gap:8px">
+      <span class="hint">Фото</span>
+      <div id="thumbs" class="thumbs"></div>
+      <div class="actions">
+        <span class="file ghost">Загрузить своё фото<input id="upload" type="file" accept="image/*"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="preview" aria-label="Превью">
+    <img id="out" alt="Готовая обложка">
+    <div class="actions">
+      <a id="dl" class="primary" href="#" download="cover.png" style="text-decoration:none">Скачать PNG</a>
+      <span class="hint">На телефоне можно просто зажать картинку → «Сохранить».</span>
+    </div>
+  </section>
+</div>
+
+<canvas id="cv" width="1080" height="1080" hidden></canvas>
+
+<script>
+"use strict";
+/* ---------------- районы ---------------- */
+const DISTRICTS = {
+  "Didi Dighomi":["диди дигоми","didi dighomi","didi digomi","დიდი დიღომი"],
+  "Old Tbilisi":["старый тбилиси","old tbilisi","ძველი თბილისი","старый город","old town"],
+  "Nutsubidze Plateau":["нуцубидзе","nutsubidze","ნუცუბიძე"],
+  "Vake":["ваке","vake","ვაკე"], "Saburtalo":["сабуртало","saburtalo","საბურთალო"],
+  "Vera":["вера","vera","ვერა"], "Mtatsminda":["мтацминда","mtatsminda","მთაწმინდა"],
+  "Sololaki":["сололаки","sololaki","სოლოლაკი"], "Abanotubani":["абанотубани","abanotubani","აბანოთუბანი"],
+  "Avlabari":["авлабар","avlabari","avlabar","ავლაბარი"], "Chugureti":["чугурети","chugureti","chughureti","ჩუღურეთი"],
+  "Marjanishvili":["марджанишвили","marjanishvili","მარჯანიშვილი"], "Didube":["дидубе","didube","დიდუბე"],
+  "Dighomi":["дигоми","dighomi","digomi","დიღომი"], "Nadzaladevi":["надзаладеви","nadzaladevi","ნაძალადევი"],
+  "Gldani":["глдани","gldani","გლდანი"], "Isani":["исани","isani","ისანი"], "Samgori":["самгори","samgori","სამგორი"],
+  "Krtsanisi":["крцаниси","krtsanisi","კრწანისი"], "Ortachala":["ортачала","ortachala","ორთაჭალა"],
+  "Vazisubani":["вазисубани","vazisubani","ვაზისუბანი"], "Varketili":["варкетили","varketili","ვარკეთილი"],
+  "Lisi":["лиси","lisi","ლისი"], "Bagebi":["багеби","bagebi","ბაგები"], "Tskneti":["цхнети","tskneti","წყნეთი"],
+  "Vashlijvari":["вашлиджвари","vashlijvari","ვაშლიჯვარი"], "Delisi":["делиси","delisi","დელისი"],
+  "Vedzisi":["ведзиси","vedzisi","ვეძისი"], "Mukhiani":["мухиани","mukhiani","მუხიანი"], "Temka":["темка","temka","თემქა"],
+  "Ponichala":["поничала","ponichala","ფონიჭალა"], "Kukia":["кукия","kukia","კუკია"], "Elia":["элия","elia","ელია"],
+  "Lilo":["лило","lilo","ლილო"]
+};
+const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+const digits = s => (s.replace(/\D/g,"").replace(/^0+/,"") || "0");
+const bedLabel = n => n===0 ? "STUDIO" : `${n} BEDROOM${n>1?"S":""}`;
+
+function extract(text){
+  const low = text.toLowerCase(), out = {};
+  out.exclusive = /эксклюзив|exclusive|ექსკლუზ/.test(low);
+
+  const num = "(\\d{1,3}(?:[ \\u00a0.,]\\d{3})+|\\d{2,6})";
+  const pats = [
+    [`\\$\\s*${num}`,"$"], [`${num}\\s*(?:\\$|usd|долл|дол\\.?|у\\.?е)`,"$"],
+    [`${num}\\s*(?:₾|gel|лари|lari|ლარ)`," GEL"], [`(?:₾|gel)\\s*${num}`," GEL"], [`${num}\\s*(?:€|eur|евро)`,"€"]
+  ];
+  const priceLines = low.split("\n").filter(l=>/цена|стоимость|price|ფას|rent|аренд/.test(l));
+  outer: for (const scope of [priceLines,[low]]) for (const chunk of scope) for (const [p,cur] of pats){
+    const m = chunk.match(new RegExp(p)); if (m){ out.price = digits(m[1])+cur; break outer; }
+  }
+
+  let m = low.match(/(\d{2,4}(?:[.,]\d+)?)\s*(?:м²|м2|м\^2|кв\.?\s*м\S*|кв\.?(?=\s|$|[,.;])|квадрат\S*|m²|m2|sq\.?\s*m|sqm|კვ\.?\s*მ?)/)
+       || low.match(/(?:площадь|area|ფართ\S*)\s*[:\-–]?\s*(\d{2,4}(?:[.,]\d+)?)/);
+  if (m) out.area = m[1].replace(",",".");
+
+  let beds = null;
+  if ((m = low.match(/(\d+)\s*[-‑]?\s*(?:x\s*)?(?:bed(?:room)?s?|спальн\S*|საძინებ\S*)/))) beds = +m[1];
+  else if (/студи|studio|სტუდიო/.test(low)) beds = 0;
+  else if ((m = low.match(/(\d+)\s*[-‑]?\s*(?:х|ти|ми|ух|ех)?\s*[-‑]?\s*(?:комн\S*|room\S*|ოთახ\S*)/))) beds = Math.max(+m[1]-1,0);
+  if (beds !== null) out.bedrooms = bedLabel(beds);
+
+  let best = null;
+  for (const [name,vars] of Object.entries(DISTRICTS)) for (const v of vars){
+    const re = new RegExp(`(^|[^\\p{L}\\d_])(${esc(v)})[\\p{L}]{0,3}(?![\\p{L}\\d_])`,"gu");
+    let mm; while ((mm = re.exec(low))){
+      const pos = mm.index + mm[1].length, pri = mm[1]==="#" ? 0 : 1;
+      const cand = [pri,pos,-v.length,name];
+      if (!best || cand[0]<best[0] || (cand[0]===best[0] && (cand[1]<best[1] || (cand[1]===best[1] && cand[2]<best[2])))) best = cand;
+    }
+  }
+  if (best) out.district = best[3];
+  return out;
+}
+
+/* ---------------- загрузка поста ---------------- */
+const PROXIES = [
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  u => `https://thingproxy.freeboard.io/fetch/${u}`
+];
+async function fetchVia(url, asBlob){
+  try { const r = await fetch(url); if (r.ok) return asBlob ? await r.blob() : await r.text(); } catch(e){}
+  let lastErr;
+  for (const p of PROXIES){
+    try {
+      const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 15000);
+      const r = await fetch(p(url), {signal:ctl.signal}); clearTimeout(t);
+      if (!r.ok) throw new Error(r.status);
+      const v = asBlob ? await r.blob() : await r.text();
+      if (asBlob ? v.size > 1000 : v.length > 200) return v;
+    } catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error("network");
+}
+function parseLink(link){
+  if (/t\.me\/c\/\d+/.test(link)) throw new Error("Это закрытый канал (t.me/c/…). Вставьте текст поста ниже и загрузите фото.");
+  const m = link.match(/t(?:elegram)?\.me\/(?:s\/)?([A-Za-z0-9_]{4,})\/(\d+)/);
+  if (!m) throw new Error("Нужна ссылка вида https://t.me/канал/123");
+  return [m[1], m[2]];
+}
+async function fetchPost(link){
+  const [ch,id] = parseLink(link);
+  const html = await fetchVia(`https://t.me/${ch}/${id}?embed=1&mode=tme`, false);
+  const doc = new DOMParser().parseFromString(html,"text/html");
+  const tEl = doc.querySelector(".tgme_widget_message_text");
+  let text = "";
+  if (tEl){ tEl.querySelectorAll("br").forEach(b=>b.replaceWith("\n")); text = tEl.textContent.trim(); }
+  const photos = [];
+  doc.querySelectorAll(".tgme_widget_message_photo_wrap, .tgme_widget_message_video_thumb").forEach(el=>{
+    const mm = (el.getAttribute("style")||"").match(/url\(['"]?([^'")]+)['"]?\)/); if (mm) photos.push(mm[1]);
+  });
+  if (!photos.length){ const og = doc.querySelector('meta[property="og:image"]'); if (og) photos.push(og.content); }
+  if (!text && !photos.length) throw new Error("Пост не найден: канал закрытый или пост удалён.");
+  return {text, photos, name:`${ch}_${id}`};
+}
+
+/* ---------------- рендер ---------------- */
+const S = 1080, NAVY="#24335f", RED="#e0464a", WHITE="#fff";
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+const state = {price:"450$", district:"Sololaki", area:"40", bedrooms:"1 BEDROOM", exclusive:true, photo:null, name:"cover"};
+
+function spaced(text, x, y, font, spacing, align){
+  ctx.font = font; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+  const ws = [...text].map(c=>ctx.measureText(c).width);
+  const total = ws.reduce((a,b)=>a+b,0) + spacing*(ws.length-1);
+  let cx = align==="center" ? x - total/2 : x;
+  [...text].forEach((c,i)=>{ ctx.fillText(c,cx,y); cx += ws[i]+spacing; });
+  return total;
+}
+function fitSize(text, maxW, start, spacing){
+  let s = start;
+  while (s > 12){ ctx.font = `${s}px "Bebas Neue"`; const w = [...text].reduce((a,c)=>a+ctx.measureText(c).width,0)+spacing*(text.length-1); if (w<=maxW) return s; s-=2; }
+  return s;
+}
+function circle(x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=RED; ctx.fill(); }
+function iconPin(x,y){
+  circle(x,y,46); ctx.strokeStyle=WHITE; ctx.fillStyle=WHITE; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.ellipse(x,y+26,26,8,0,0,Math.PI*2); ctx.fill();
+  const top=y-34, r=18;
+  ctx.beginPath(); ctx.arc(x,top+r,r,Math.PI*0.82,Math.PI*2.18); ctx.lineTo(x,y+22); ctx.closePath();
+  ctx.fillStyle=RED; ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x,top+r,7,0,Math.PI*2); ctx.stroke();
+}
+function iconM2(x,y){
+  circle(x,y,46); ctx.fillStyle=WHITE; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+  ctx.font='bold 40px Georgia,"Times New Roman",serif'; ctx.fillText("m",x-4,y+14);
+  ctx.font='bold 17px Georgia,"Times New Roman",serif'; ctx.fillText("2",x+22,y-6);
+}
+function iconBed(x,y){
+  circle(x,y,46); ctx.fillStyle=WHITE; const x0=x-34, x1=x+34;
+  ctx.fillRect(x0,y-26,5,50); ctx.fillRect(x1-5,y-8,5,32);
+  ctx.beginPath(); ctx.roundRect(x0+9,y-18,20,12,3); ctx.roundRect(x0+33,y-18,20,12,3); ctx.fill();
+  ctx.fillRect(x0,y-2,68,14); ctx.fillRect(x0,y+16,68,4);
+}
+function drawCover(st, img){
+  ctx.fillStyle=NAVY; ctx.fillRect(0,0,S,S);
+  const H=256, ph=S-H;
+  if (img){
+    const k=Math.max(S/img.width, ph/img.height), w=img.width*k, h=img.height*k;
+    ctx.save(); ctx.beginPath(); ctx.rect(0,H,S,ph); ctx.clip();
+    ctx.drawImage(img,(S-w)/2,H+(ph-h)/2,w,h); ctx.restore();
+  } else {
+    const g=ctx.createLinearGradient(0,H,S,S); g.addColorStop(0,"#b9bfcf"); g.addColorStop(1,"#8c93a8");
+    ctx.fillStyle=g; ctx.fillRect(0,H,S,ph);
+    ctx.fillStyle="rgba(255,255,255,.75)"; ctx.textAlign="center"; ctx.font='32px "Golos Text",sans-serif';
+    ctx.fillText("Здесь будет фото из поста", S/2, 660);
+  }
+  ctx.fillStyle="rgba(120,120,120,.78)"; ctx.fillRect(0,256,S,156);
+  if (st.exclusive){ ctx.fillStyle=RED; ctx.fillRect(0,856,S,56); }
+
+  const price=(st.price||"").toUpperCase();
+  if (price){ ctx.fillStyle=WHITE; const sz=fitSize(price,900,250,6); spaced(price,S/2,st.exclusive?194:204,`${sz}px "Bebas Neue"`,6,"center"); }
+  if (st.exclusive){
+    ctx.fillStyle=WHITE; const w=spaced("EXCLUSIVE",S/2,238,'32px "Bebas Neue"',3,"center");
+    ctx.fillStyle=RED; ctx.fillRect(S/2-w/2,244,w,4);
+  }
+  const xs=[226,540,854]; iconPin(xs[0],313); iconM2(xs[1],313); iconBed(xs[2],313);
+  [st.district,st.area,st.bedrooms].forEach((l,i)=>{
+    l=(l||"").toUpperCase(); if(!l) return;
+    ctx.fillStyle=WHITE; const sz=fitSize(l,320,40,2); spaced(l,xs[i],400,`${sz}px "Bebas Neue"`,2,"center");
+  });
+  if (st.exclusive){ ctx.fillStyle=WHITE; spaced("EXCLUSIVE APARTMENT",209,899,'42px "Bebas Neue"',4,"left"); }
+}
+
+/* ---------------- UI ---------------- */
+const $ = id => document.getElementById(id);
+const out=$("out"), dl=$("dl"), status=$("status");
+let photoUrls=[], photoCache={}, selected=0, rendering=Promise.resolve(), lastObjUrl=null;
+
+function say(msg, err){ status.textContent=msg; status.classList.toggle("err",!!err); }
+function fillForm(){
+  $("price").value=state.price||""; $("district").value=state.district||""; $("area").value=state.area||""; $("beds").value=state.bedrooms||"";
+  $("exYes").setAttribute("aria-pressed",state.exclusive); $("exNo").setAttribute("aria-pressed",!state.exclusive);
+}
+async function render(){
+  await document.fonts.load('250px "Bebas Neue"').catch(()=>{});
+  drawCover(state, state.photo);
+  cv.toBlob(b=>{
+    if (!b) return;
+    if (lastObjUrl) URL.revokeObjectURL(lastObjUrl);
+    lastObjUrl = URL.createObjectURL(b); out.src=lastObjUrl; dl.href=lastObjUrl; dl.download=`${state.name}.png`;
+  },"image/png");
+}
+function loadImg(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
+async function getPhoto(url){
+  if (photoCache[url]) return photoCache[url];
+  const blob = await fetchVia(url,true);
+  return (photoCache[url] = await loadImg(URL.createObjectURL(blob)));
+}
+function drawThumbs(){
+  const box=$("thumbs"); box.innerHTML="";
+  photoUrls.forEach((u,i)=>{
+    const b=document.createElement("button"); b.type="button"; b.setAttribute("aria-pressed",i===selected); b.setAttribute("aria-label",`Фото ${i+1}`);
+    const im=document.createElement("img"); im.alt=""; im.referrerPolicy="no-referrer"; im.src=u; b.append(im);
+    b.onclick=async()=>{ selected=i; drawThumbs(); try{ say("Загружаю фото…"); state.photo=await getPhoto(u); say("Готово."); render(); }catch(e){ say("Не удалось загрузить это фото — загрузите своё.",true);} };
+    box.append(b);
+  });
+}
+function applyParsed(p){
+  state.price=p.price||""; state.district=p.district||""; state.area=p.area||""; state.bedrooms=p.bedrooms||""; state.exclusive=!!p.exclusive;
+  fillForm();
+  const miss=[["price","цена"],["district","район"],["area","площадь"],["bedrooms","спальни"]].filter(([k])=>!state[k]).map(([,n])=>n);
+  return miss;
+}
+
+$("go").onclick = async ()=>{
+  const link=$("link").value.trim(); if(!link){ say("Вставьте ссылку на пост.",true); return; }
+  $("go").disabled=true; say("Читаю пост…");
+  try{
+    const post=await fetchPost(link);
+    state.name=post.name; $("ptext").value=post.text;
+    const miss=applyParsed(extract(post.text));
+    photoUrls=post.photos; selected=0; drawThumbs(); state.photo=null;
+    if (photoUrls.length){ say("Загружаю фото…"); try{ state.photo=await getPhoto(photoUrls[0]); }catch(e){ say("Фото не загрузилось — нажмите «Загрузить своё фото».",true); } }
+    await render();
+    if (!status.classList.contains("err")) say(miss.length ? `Готово. Не нашлось: ${miss.join(", ")} — впишите вручную.` : "Готово. Проверьте поля и скачайте картинку.", miss.length>0);
+  }catch(e){
+    $("manual").open=true;
+    say(e.message && !/^\d+$|network|abort|fetch/i.test(e.message) ? e.message : "Не получилось открыть пост. Вставьте текст поста ниже и загрузите фото.", true);
+  }finally{ $("go").disabled=false; }
+};
+$("link").addEventListener("keydown",e=>{ if(e.key==="Enter") $("go").click(); });
+$("parse").onclick=()=>{ const miss=applyParsed(extract($("ptext").value)); render(); say(miss.length?`Не нашлось: ${miss.join(", ")} — впишите вручную.`:"Готово.", miss.length>0); };
+[["price","price"],["district","district"],["area","area"],["beds","bedrooms"]].forEach(([id,k])=>{
+  $(id).addEventListener("input",()=>{
+    let v=$(id).value.trim();
+    if (k==="bedrooms" && /^\d+$/.test(v)) v=bedLabel(+v);
+    if (k==="price" && /^\d[\d\s]*$/.test(v)) v=digits(v)+"$";
+    state[k]=v; render();
+  });
+});
+$("exYes").onclick=()=>{ state.exclusive=true; fillForm(); render(); };
+$("exNo").onclick=()=>{ state.exclusive=false; fillForm(); render(); };
+$("upload").onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  state.photo=await loadImg(URL.createObjectURL(f)); selected=-1; drawThumbs(); render(); say("Фото заменено.");
+};
+fillForm(); render();
+</script>
+</body>
+</html>
