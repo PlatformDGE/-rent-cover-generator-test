@@ -1,0 +1,41 @@
+name: probe
+on:
+  push:
+    branches: [probe]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          set +e
+          P="https://t.me/durov/406?embed=1&mode=tme"
+          E=$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1],safe=''))" "$P")
+          O="Origin: https://platformdge.github.io"
+          t(){ name=$1; shift; echo "=== $name" >> r.txt
+               curl -sS -m 25 -D h.txt -o b.txt -H "$O" "$@" 2>>r.txt
+               head -1 h.txt >> r.txt; grep -i '^access-control-allow-origin' h.txt >> r.txt
+               echo "size=$(wc -c < b.txt) text=$(grep -c tgme_widget_message_text b.txt) photo=$(grep -o 'cdn[0-9]*\.telesco\.pe[^)'"'"']*' b.txt | head -1)" >> r.txt; }
+          t direct "$P"
+          t jina_html -H "X-Return-Format: html" "https://r.jina.ai/$P"
+          t jina_md "https://r.jina.ai/$P"
+          t allorigins_raw "https://api.allorigins.win/raw?url=$E"
+          t allorigins_get "https://api.allorigins.win/get?url=$E"
+          t codetabs "https://api.codetabs.com/v1/proxy/?quest=$E"
+          t corsproxy "https://corsproxy.io/?url=$E"
+          t thingproxy "https://thingproxy.freeboard.io/fetch/$P"
+          t corseu "https://cors.eu.org/$P"
+          t cors_lol "https://api.cors.lol/?url=$E"
+          t whateverorigin "https://whateverorigin.org/get?url=$E"
+          echo "=== jina preflight" >> r.txt
+          curl -sS -m 20 -X OPTIONS -D - -o /dev/null -H "$O" -H "Access-Control-Request-Method: GET" -H "Access-Control-Request-Headers: x-return-format" "https://r.jina.ai/$P" | grep -iE '^HTTP|access-control' >> r.txt
+          IMG=$(curl -s "$P" | grep -o "https://cdn[0-9]*\.telesco\.pe/file/[^')]*" | head -1)
+          echo "IMG=$IMG" >> r.txt
+          IE=$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1],safe=''))" "$IMG")
+          t img_direct "$IMG"
+          t img_wsrv "https://wsrv.nl/?url=$IE"
+          mkdir -p probe && mv r.txt probe/results.txt
+          git config user.name probe; git config user.email probe@users.noreply.github.com
+          git add probe && git commit -m probe && git push
