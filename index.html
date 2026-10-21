@@ -60,7 +60,7 @@ button{font:inherit;cursor:pointer;border:0;border-radius:10px}
 .file{position:relative;overflow:hidden;display:inline-flex}
 .file input{position:absolute;inset:0;opacity:0;cursor:pointer}
 details summary{cursor:pointer;color:var(--muted);font-size:13px}
-details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-size:15px;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px}
+#ptext{width:100%;min-height:110px;margin-top:8px;font:inherit;font-size:15px;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px}
 .wm{grid-column:1/-1}
 .wm h2{font:400 28px/1 var(--display);letter-spacing:.04em;margin:0}
 .wmgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
@@ -75,25 +75,17 @@ details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-si
 <div class="wrap">
   <header>
     <h1>Apartment <span>Cover</span></h1>
-    <p>Paste a Telegram post link and get a 1080×1080 image for Instagram and Facebook.</p>
+    <p>Paste the listing text, add photos and get images for Instagram, Facebook and YouTube.</p>
   </header>
 
   <section class="panel" aria-label="Details">
-    <label for="link">Post link
-      <div class="row">
-        <input id="link" type="url" inputmode="url" placeholder="https://t.me/channel/123" autocomplete="off">
-        <button id="go" class="primary">Generate</button>
-      </div>
+    <label for="ptext">Listing text
+      <textarea id="ptext" placeholder="Paste the listing text here…"></textarea>
     </label>
-    <p id="status" class="status" role="status">Example shown. Paste your own link.</p>
-
-    <details id="manual">
-      <summary>Private channel or link not opening? Paste the post text</summary>
-      <textarea id="ptext" placeholder="Listing text…"></textarea>
-      <div class="actions" style="margin-top:8px">
-        <button id="parse" class="ghost">Read text</button>
-      </div>
-    </details>
+    <div class="actions">
+      <button id="parse" class="primary">Read text</button>
+      <p id="status" class="status" role="status">Example shown. Paste your listing text.</p>
+    </div>
 
     <hr class="sep">
 
@@ -113,10 +105,10 @@ details textarea{width:100%;min-height:110px;margin-top:8px;font:inherit;font-si
     </div>
 
     <div style="display:grid;gap:8px">
-      <span class="hint">Photo</span>
+      <span class="hint">Cover photo</span>
       <div id="thumbs" class="thumbs"></div>
       <div class="actions">
-        <span class="file ghost">Upload your own photo<input id="upload" type="file" accept="image/*"></span>
+        <span class="file ghost">Upload photo<input id="upload" type="file" accept="image/*"></span>
       </div>
     </div>
   </section>
@@ -218,51 +210,6 @@ function extract(text){
   }
   if (best) out.district = best[3];
   return out;
-}
-
-/* ---------------- fetching the post ---------------- */
-// источники по очереди: напрямую, Jina Reader, allorigins (raw и json)
-const SOURCES = [
-  {url:u=>u},
-  {url:u=>`https://r.jina.ai/${u}`, headers:{"X-Return-Format":"html"}, textOnly:true},
-  {url:u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`},
-  {url:u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, json:true, textOnly:true},
-];
-async function fetchVia(url, asBlob){
-  let lastErr;
-  for (const src of SOURCES){
-    if (asBlob && src.textOnly) continue;
-    try {
-      const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 20000);
-      const r = await fetch(src.url(url), {signal:ctl.signal, headers:src.headers||{}}); clearTimeout(t);
-      if (!r.ok) throw new Error(r.status);
-      if (asBlob){ const b = await r.blob(); if (b.size > 1000) return b; continue; }
-      const v = src.json ? ((await r.json()).contents || "") : await r.text();
-      if (v.includes("tgme_widget_message")) return v;
-    } catch(e){ lastErr = e; }
-  }
-  throw lastErr || new Error("network");
-}
-function parseLink(link){
-  if (/t\.me\/c\/\d+/.test(link)) throw new Error("This is a private channel (t.me/c/…). Paste the post text below and upload a photo.");
-  const m = link.match(/t(?:elegram)?\.me\/(?:s\/)?([A-Za-z0-9_]{4,})\/(\d+)/);
-  if (!m) throw new Error("Link must look like https://t.me/channel/123");
-  return [m[1], m[2]];
-}
-async function fetchPost(link){
-  const [ch,id] = parseLink(link);
-  const html = await fetchVia(`https://t.me/${ch}/${id}?embed=1&mode=tme`, false);
-  const doc = new DOMParser().parseFromString(html,"text/html");
-  const tEl = doc.querySelector(".tgme_widget_message_text.js-message_text") || doc.querySelector(".tgme_widget_message_text:not(.js-message_reply_text)");
-  let text = "";
-  if (tEl){ tEl.querySelectorAll("br").forEach(b=>b.replaceWith("\n")); text = tEl.textContent.trim(); }
-  const photos = [];
-  doc.querySelectorAll(".tgme_widget_message_photo_wrap, .tgme_widget_message_video_thumb").forEach(el=>{
-    const mm = (el.getAttribute("style")||"").match(/url\(['"]?([^'")]+)['"]?\)/); if (mm) photos.push(mm[1]);
-  });
-  if (!photos.length){ const og = doc.querySelector('meta[property="og:image"]'); if (og) photos.push(og.content); }
-  if (!text && !photos.length) throw new Error("Post not found: the channel is private or the post was deleted.");
-  return {text, photos, name:`${ch}_${id}`};
 }
 
 /* ---------------- render ---------------- */
@@ -378,12 +325,12 @@ async function render(){
   document.getElementById("yt").toBlob(b=>{
     if (!b) return;
     if (ytObjUrl) URL.revokeObjectURL(ytObjUrl);
-    ytObjUrl=URL.createObjectURL(b); $("ytOut").src=ytObjUrl; $("ytDl").href=ytObjUrl; $("ytDl").download=`${state.name}_youtube.jpg`;
+    ytObjUrl=URL.createObjectURL(b); $("ytOut").src=ytObjUrl; $("ytDl").href=ytObjUrl; $("ytDl").download=`${autoFolder()} youtube.jpg`;
   },"image/jpeg",0.93);
   cv.toBlob(b=>{
     if (!b) return;
     if (lastObjUrl) URL.revokeObjectURL(lastObjUrl);
-    lastObjUrl = URL.createObjectURL(b); out.src=lastObjUrl; dl.href=lastObjUrl; dl.download=`${state.name}.png`;
+    lastObjUrl = URL.createObjectURL(b); out.src=lastObjUrl; dl.href=lastObjUrl; dl.download=`${autoFolder()} cover.png`;
   },"image/png");
 }
 function loadImg(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
@@ -408,23 +355,6 @@ function applyParsed(p){
   return miss;
 }
 
-$("go").onclick = async ()=>{
-  const link=$("link").value.trim(); if(!link){ say("Paste a post link.",true); return; }
-  $("go").disabled=true; say("Reading post…");
-  try{
-    const post=await fetchPost(link);
-    state.name=post.name; $("ptext").value=post.text;
-    const miss=applyParsed(extract(post.text));
-    photoUrls=post.photos; selected=0; drawThumbs(); state.photo=null;
-    if (photoUrls.length){ say("Loading photo…"); try{ state.photo=await getPhoto(photoUrls[0]); }catch(e){ say("Photo didn't load — tap Upload your own photo.",true); } }
-    await render();
-    if (!status.classList.contains("err")) say(miss.length ? `Done. Not found: ${miss.join(", ")} — fill in manually.` : "Done. Check the fields and download the image.", miss.length>0);
-  }catch(e){
-    $("manual").open=true;
-    say(e.message && !/^\d+$|network|abort|fetch/i.test(e.message) ? e.message : "Couldn't open the post. Paste the post text below and upload a photo.", true);
-  }finally{ $("go").disabled=false; }
-};
-$("link").addEventListener("keydown",e=>{ if(e.key==="Enter") $("go").click(); });
 $("parse").onclick=()=>{ const miss=applyParsed(extract($("ptext").value)); render(); say(miss.length?`Not found: ${miss.join(", ")} — fill in manually.`:"Done.", miss.length>0); };
 [["price","price"],["district","district"],["area","area"],["beds","bedrooms"]].forEach(([id,k])=>{
   $(id).addEventListener("input",()=>{

@@ -1,6 +1,6 @@
 # Генератор обложек квартир (1080×1080)
 
-**Генератор онлайн:** https://platformdge.github.io/-rent-cover-generator-test/ — вставьте ссылку на пост и скачайте картинку.
+**Генератор онлайн:** https://platformdge.github.io/-rent-cover-generator-test/ — вставьте текст объявления и фото, скачайте картинки.
 
 Из поста в Telegram-канале делает квадратную картинку для Instagram и Facebook в фирменном шаблоне.
 
