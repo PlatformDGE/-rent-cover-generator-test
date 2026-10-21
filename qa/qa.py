@@ -5,7 +5,7 @@ from PIL import Image
 from playwright.sync_api import sync_playwright
 
 SITE = "https://platformdge.github.io/-rent-cover-generator-test/"
-OUT = Path("qa/out4"); OUT.mkdir(parents=True, exist_ok=True)
+OUT = Path("qa/out6"); OUT.mkdir(parents=True, exist_ok=True)
 results = []
 
 def check(name, ok, detail=""):
@@ -19,12 +19,12 @@ def get(url):
 # ---- wait for the fresh deploy
 for _ in range(36):
     try:
-        if 'EXCLUSIVE PROPERTY' in get(SITE + "?nocache=" + str(time.time())):
+        if 'comma?182:194' in get(SITE + "?nocache=" + str(time.time())):
             break
     except Exception:
         pass
     time.sleep(10)
-check("site deployed with latest code", 'EXCLUSIVE PROPERTY' in get(SITE + "?n=" + str(time.time())))
+check("site deployed with latest code", 'comma?182:194' in get(SITE + "?n=" + str(time.time())))
 
 # ---- test images
 TEST = Path("qa/imgs"); TEST.mkdir(exist_ok=True)
@@ -70,6 +70,8 @@ with sync_playwright() as p:
     y = canvas_png(page, "yt", OUT / "03_youtube_exclusive.png")
     ul = y.getpixel((326, 85)); top = max(y.getpixel((x, 70))[1] for x in range(250, 400))
     check("YouTube: EXCLUSIVE at top with red line when exclusive", ul[0] > 200 and ul[1] < 100 and top > 200, (ul, top))
+    logo = max((y.getpixel((x, yy)) for x in range(270, 360) for yy in range(610, 690)), key=lambda p: p[1])
+    check("YouTube: logo is white", logo[0] > 220 and logo[1] > 220 and logo[2] > 220, logo)
     rb = y.getpixel((660, 597))
     check("YouTube: no ribbon on photo (as in sample)", not (rb[0] > 200 and rb[1] < 100), rb)
 
@@ -201,7 +203,7 @@ try:
 except Exception as e:
     check("Python script (text mode)", False, e)
 
-Path("qa/out4/report.json").write_text(json.dumps(results, ensure_ascii=False, indent=1))
+Path("qa/out6/report.json").write_text(json.dumps(results, ensure_ascii=False, indent=1))
 passed = sum(r["ok"] for r in results)
-Path("qa/out4/summary.txt").write_text(f"{passed}/{len(results)} passed\n" + "\n".join(("PASS " if r["ok"] else "FAIL ") + r["test"] + " — " + r["detail"] for r in results))
+Path("qa/out6/summary.txt").write_text(f"{passed}/{len(results)} passed\n" + "\n".join(("PASS " if r["ok"] else "FAIL ") + r["test"] + " — " + r["detail"] for r in results))
 print(f"{passed}/{len(results)} passed")
