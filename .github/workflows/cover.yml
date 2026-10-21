@@ -1,0 +1,73 @@
+name: Сделать обложку
+
+on:
+  workflow_dispatch:
+    inputs:
+      link:
+        description: "Ссылка на пост (https://t.me/канал/123)"
+        required: true
+      exclusive:
+        description: "Эксклюзив"
+        type: choice
+        options: [auto, "yes", "no"]
+        default: auto
+      price:
+        description: "Цена (если не нашлась сама), напр. 450"
+        required: false
+      district:
+        description: "Район (если не нашёлся), напр. Vake"
+        required: false
+      area:
+        description: "Площадь м² (если не нашлась)"
+        required: false
+      bedrooms:
+        description: "Спальни (если не нашлись), 0 = студия"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  cover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Генерация
+        id: gen
+        env:
+          LINK: ${{ inputs.link }}
+          PRICE: ${{ inputs.price }}
+          DISTRICT: ${{ inputs.district }}
+          AREA: ${{ inputs.area }}
+          BEDROOMS: ${{ inputs.bedrooms }}
+          EXCL: ${{ inputs.exclusive }}
+        run: |
+          python cover.py "$LINK" --exclusive "$EXCL" \
+            ${PRICE:+--price "$PRICE"} ${DISTRICT:+--district "$DISTRICT"} \
+            ${AREA:+--area "$AREA"} ${BEDROOMS:+--bedrooms "$BEDROOMS"} | tee out.txt
+          echo "file=$(grep '^saved:' out.txt | sed 's/^saved: *//; s#.*/covers/#covers/#')" >> "$GITHUB_OUTPUT"
+      - name: Сохранить в репозиторий
+        run: |
+          git config user.name "cover-bot"
+          git config user.email "cover-bot@users.noreply.github.com"
+          git add -f "${{ steps.gen.outputs.file }}"
+          git commit -m "cover: ${{ steps.gen.outputs.file }}" || echo "без изменений"
+          git pull --rebase && git push
+      - name: Показать
+        run: |
+          URL="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/${{ steps.gen.outputs.file }}"
+          {
+            echo "### Готово"
+            echo '```'; cat out.txt; echo '```'
+            echo "[Открыть / скачать]($URL)"
+            echo ""
+            echo "![cover]($URL?v=${{ github.run_id }})"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cover
+          path: ${{ steps.gen.outputs.file }}
