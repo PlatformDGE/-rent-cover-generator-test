@@ -5,7 +5,7 @@ from PIL import Image
 from playwright.sync_api import sync_playwright
 
 SITE = "https://platformdge.github.io/-rent-cover-generator-test/"
-OUT = Path("qa/out"); OUT.mkdir(parents=True, exist_ok=True)
+OUT = Path("qa/out2"); OUT.mkdir(parents=True, exist_ok=True)
 results = []
 
 def check(name, ok, detail=""):
@@ -19,34 +19,12 @@ def get(url):
 # ---- wait for the fresh deploy
 for _ in range(36):
     try:
-        if "r.jina.ai" in get(SITE + "?nocache=" + str(time.time())):
+        if 'rt="EXCLUSIVE APARTMENT"' in get(SITE + "?nocache=" + str(time.time())):
             break
     except Exception:
         pass
     time.sleep(10)
-check("site deployed with latest code", "r.jina.ai" in get(SITE + "?n=" + str(time.time())))
-
-# ---- find real rental channel posts with photos
-posts = []
-for ch in ["rentintbilisi", "rent_in_tbilisi", "rentin_tbilisi", "rent_tbilisi", "rentintbilisi_ge",
-           "rentintbilisiofficial", "rent_in_tbilisi_ge", "tbilisi_rent", "rentintbilisi1"]:
-    try:
-        h = get(f"https://t.me/s/{ch}")
-    except Exception:
-        continue
-    ids = re.findall(r'data-post="([^"/]+/\d+)"', h)
-    if ids:
-        blocks = h.split('data-post="')
-        for b in blocks[1:]:
-            pid = b.split('"')[0]
-            if "tgme_widget_message_photo_wrap" in b and "tgme_widget_message_text" in b and re.search(r"\$|usd|лари|gel", b, re.I):
-                posts.append(pid)
-        print("channel", ch, "posts:", len(ids), "with photo+price:", len(posts), flush=True)
-        if posts:
-            break
-posts = posts[-3:]
-check("found real public rental channel posts", bool(posts), posts)
-links = [f"https://t.me/{p}" for p in posts] or ["https://t.me/durov/406"]
+check("site deployed with latest code", 'rt="EXCLUSIVE APARTMENT"' in get(SITE + "?n=" + str(time.time())))
 
 # ---- test images
 TEST = Path("qa/imgs"); TEST.mkdir(exist_ok=True)
@@ -77,30 +55,10 @@ with sync_playwright() as p:
     sz = page.evaluate("[document.getElementById('out').naturalWidth, document.getElementById('out').naturalHeight, document.getElementById('ytOut').naturalWidth, document.getElementById('ytOut').naturalHeight]")
     check("example cover renders 1080x1080 + YouTube 1280x720", sz == [1080, 1080, 1280, 720], sz)
     check("Bebas Neue font loaded", page.evaluate("document.fonts.check('40px \"Bebas Neue\"')"))
-    check("UI is in English", page.inner_text("#go") == "Generate" and "Watermark photos" in page.content())
+    check("UI in English, no Telegram link field", page.inner_text("#parse") == "Read text" and "Watermark photos" in page.content() and page.locator("#link").count() == 0 and "Telegram" not in page.inner_text("body"))
     page.screenshot(path=OUT / "01_desktop.png", full_page=True)
 
-    # 2. link → real post
-    for n, link in enumerate(links):
-        page.fill("#link", link)
-        page.click("#go")
-        try:
-            page.wait_for_function("!document.getElementById('go').disabled", timeout=90000)
-        except Exception:
-            pass
-        page.wait_for_timeout(2000)
-        st = page.inner_text("#status")
-        vals = {k: field(page, k) for k in ("price", "district", "area", "beds")}
-        thumbs = page.locator("#thumbs button").count()
-        text = page.input_value("#ptext")
-        has_photo = page.evaluate("!!state.photo")
-        ok = bool(text) and bool(vals["price"]) and has_photo
-        check(f"link fetch {link}", ok, f"status={st!r} fields={vals} thumbs={thumbs} photo={has_photo} text={text[:150]!r}")
-        canvas_png(page, "cv", OUT / f"02_link_cover_{n}.png")
-        canvas_png(page, "yt", OUT / f"02_link_youtube_{n}.png")
-
     # 3. manual text — exclusive
-    page.click("#manual summary") if not page.evaluate("document.getElementById('manual').open") else None
     page.fill("#ptext", "🔥 ЭКСКЛЮЗИВ 🔥\n#Надзаладеви\nСдается 2-х комнатная квартира, 52 кв.м\n💰 Цена: 370$")
     page.click("#parse"); page.wait_for_timeout(800)
     vals = {k: field(page, k) for k in ("price", "district", "area", "beds")}
@@ -109,6 +67,9 @@ with sync_playwright() as p:
     img = canvas_png(page, "cv", OUT / "03_exclusive.png")
     r, g, b = img.getpixel((60, 884))
     check("exclusive ribbon drawn", r > 200 and g < 100, (r, g, b))
+    y = canvas_png(page, "yt", OUT / "03_youtube_exclusive.png")
+    yr = y.getpixel((660, 597))
+    check("YouTube: EXCLUSIVE ribbon when exclusive", yr[0] > 200 and yr[1] < 100, yr)
 
     # 4. manual — non exclusive EN
     page.fill("#ptext", "For rent: 1 bedroom apartment in Sololaki\nArea: 40 m2\nPrice 450 USD")
@@ -118,6 +79,9 @@ with sync_playwright() as p:
     r, g, b = img.getpixel((60, 884))
     check("manual parse (EN, not exclusive)", vals == {"price": "450$", "district": "Sololaki", "area": "40", "beds": "1 BEDROOM"} and page.get_attribute("#exNo", "aria-pressed") == "true", vals)
     check("no ribbon when not exclusive", not (r > 200 and g < 100), (r, g, b))
+    y = canvas_png(page, "yt", OUT / "04_youtube_non_exclusive.png")
+    yr = y.getpixel((660, 597))
+    check("YouTube: no ribbon when not exclusive", not (yr[0] > 200 and yr[1] < 100), yr)
 
     # 5. Georgian text
     page.fill("#ptext", "ექსკლუზიური! ვაკე, 2 საძინებელი, 90 კვ.მ, $900")
@@ -174,12 +138,6 @@ with sync_playwright() as p:
     check("Save to folder on computer button (Chrome)", page.is_visible("#wmDir"))
     check("Download all button", page.is_visible("#wmAll"))
 
-    # 11. private channel / bad link messages
-    page.fill("#link", "https://t.me/c/12345/67"); page.click("#go"); page.wait_for_timeout(1500)
-    check("private channel link message", "private channel" in page.inner_text("#status"), page.inner_text("#status"))
-    page.fill("#link", "hello"); page.click("#go"); page.wait_for_timeout(1000)
-    check("bad link message", "t.me/channel" in page.inner_text("#status"), page.inner_text("#status"))
-
     check("no JavaScript errors", not errors, errors[:5])
 
     # 12. mobile
@@ -190,15 +148,16 @@ with sync_playwright() as p:
     mp.screenshot(path=OUT / "12_mobile.png", full_page=True)
     br.close()
 
-# ---- Python CLI
+# ---- Python CLI (text mode)
 try:
-    r = subprocess.run([sys.executable, "cover.py", links[0], "--out", str(OUT / "13_cli.png")], capture_output=True, text=True, timeout=120)
-    ok = r.returncode == 0 and Image.open(OUT / "13_cli.png").size == (1080, 1080)
-    check("Python CLI from link", ok, r.stdout + r.stderr)
+    Path("qa/post.txt").write_text("ЭКСКЛЮЗИВ #Ваке 3-х комнатная 85 м² Цена: 1 200 $", encoding="utf-8")
+    r = subprocess.run([sys.executable, "cover.py", "--text", "qa/post.txt", "--photo", "qa/imgs/room1.jpg", "--out", str(OUT / "13_cli.png")], capture_output=True, text=True, timeout=120)
+    ok = r.returncode == 0 and "1200$" in r.stdout and "Vake" in r.stdout and Image.open(OUT / "13_cli.png").size == (1080, 1080)
+    check("Python script (text mode)", ok, r.stdout + r.stderr)
 except Exception as e:
-    check("Python CLI from link", False, e)
+    check("Python script (text mode)", False, e)
 
-Path("qa/out/report.json").write_text(json.dumps(results, ensure_ascii=False, indent=1))
+Path("qa/out2/report.json").write_text(json.dumps(results, ensure_ascii=False, indent=1))
 passed = sum(r["ok"] for r in results)
-Path("qa/out/summary.txt").write_text(f"{passed}/{len(results)} passed\n" + "\n".join(("PASS " if r["ok"] else "FAIL ") + r["test"] + " — " + r["detail"] for r in results))
+Path("qa/out2/summary.txt").write_text(f"{passed}/{len(results)} passed\n" + "\n".join(("PASS " if r["ok"] else "FAIL ") + r["test"] + " — " + r["detail"] for r in results))
 print(f"{passed}/{len(results)} passed")
