@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cut">
 <title>Анкета · Homes in Georgia</title>
-<meta name="description" content="1 минута — и мы подберём квартиру под вас">
+<meta name="description" content="Короткая анкета для показа квартиры">
 <meta name="theme-color" content="#032D6A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -114,7 +114,7 @@ textarea.field{min-height:96px;resize:vertical}
   <section class="step" data-s="name">
     <div class="count"></div>
     <h2 data-t="nameT">Как к вам обращаться?</h2>
-    <p class="hint" data-t="nameH">Около минуты — дальше просто нажимайте на варианты</p>
+    <p class="hint" data-t="nameH">Пара вопросов о вас для собственника — займёт минуту</p>
     <input class="field" id="name" autocomplete="given-name" data-ph="namePh" placeholder="Например, Анна">
   </section>
 
@@ -226,7 +226,7 @@ textarea.field{min-height:96px;resize:vertical}
     <div class="done">
       <div class="big">✓</div>
       <h2 data-t="okT">Спасибо!</h2>
-      <p class="hint" data-t="okH">Анкета у менеджера. Скоро пришлём подходящие варианты и согласуем показ.</p>
+      <p class="hint" data-t="okH">Анкета у менеджера. Он свяжется с вами, чтобы договориться о показе.</p>
       <button class="skip" id="again" type="button" data-t="again">Вернуться к анкете</button>
     </div>
   </section>
@@ -253,9 +253,7 @@ const WA = (Q.get('wa')||'').replace(/\D/g,'');
 
 const T = {
 ru:{start:'Начать',next:'Далее',finish:'Посмотреть ответы',skip:'Пропустить',
-introT:'Подберём квартиру под вас',introH:'Ответьте на несколько вопросов — это займёт около минуты. В основном нужно просто нажимать на варианты.',
-p1:'Без регистрации и лишних полей',p2:'Покажем только подходящие варианты',p3:'Ответы уйдут менеджеру в один клик',
-nameT:'Как к вам обращаться?',nameH:'Около минуты — дальше просто нажимайте на варианты',namePh:'Например, Анна',
+nameT:'Как к вам обращаться?',nameH:'Пара вопросов о вас для собственника — займёт минуту',namePh:'Например, Анна',
 cT:'Ваше гражданство',cH:'Выберите или впишите свою страну',cPh:'Другая страна…',
 jT:'Чем вы занимаетесь?',jH:'Собственникам важно понимать, кто будет жить в квартире',jPh:'Или напишите свой вариант',
 peT:'Сколько человек будет жить?',peH:'Включая детей',
@@ -266,7 +264,7 @@ tT:'На какой срок аренда?',dT:'Когда хотите засе
 vT:'Когда удобно смотреть квартиры?',multi:'Можно выбрать несколько',vPh:'Уточнение, например: после 18:00',
 wT:'Что важно в квартире?',wH:'Выберите всё, что важно. Если неважно — просто жмите «Далее»',wPh:'Район, этаж, что-то ещё…',
 sT:'Проверьте и отправьте',sH:'Нажмите на строку, чтобы исправить',toTg:'Отправить в Telegram',toWa:'Отправить в WhatsApp',copy:'Скопировать текст',copied:'Текст скопирован',
-okT:'Спасибо!',okH:'Анкета у менеджера. Скоро пришлём подходящие варианты и согласуем показ.',again:'Вернуться к анкете',
+okT:'Спасибо!',okH:'Анкета у менеджера. Он свяжется с вами, чтобы договориться о показе.',again:'Вернуться к анкете',
 of:'из',empty:'не указано',
 opt:{
 country:['🇷🇺 Россия','🇺🇦 Украина','🇧🇾 Беларусь','🇰🇿 Казахстан','🇮🇱 Израиль','🇹🇷 Турция','🇮🇳 Индия','🇺🇸 США','🇩🇪 Германия','🇬🇪 Грузия'],
@@ -280,9 +278,7 @@ wish:['🌿 Балкон','❄️ Кондиционер','🍽 Посудомо
 L:{head:'АНКЕТА КЛИЕНТА',name:'Имя',country:'Страна / гражданство',job:'Род деятельности',people:'Проживающих',kids:'Дети',pets:'Животные',budget:'Бюджет',term:'Срок аренды',date:'Дата заселения',view:'Удобное время показа',wish:'Особые требования',no:'Нет',petPhoto:'(фото пришлю в чат)'}
 },
 en:{start:'Start',next:'Next',finish:'Review answers',skip:'Skip',
-introT:'Let’s find your apartment',introH:'Answer a few quick questions — it takes about a minute. Mostly you just tap the options.',
-p1:'No sign-up, no long forms',p2:'We’ll show only places that fit',p3:'Send it to your manager in one tap',
-nameT:'What’s your name?',nameH:'About a minute — after this you mostly just tap options',namePh:'e.g. Anna',
+nameT:'What’s your name?',nameH:'A few questions about you for the owner — takes a minute',namePh:'e.g. Anna',
 cT:'Your citizenship',cH:'Pick or type your country',cPh:'Another country…',
 jT:'What do you do?',jH:'Owners like to know who will live in the apartment',jPh:'Or type your own',
 peT:'How many people will live there?',peH:'Including children',
@@ -293,7 +289,7 @@ tT:'Rental period?',dT:'When would you like to move in?',
 vT:'When is it convenient to view apartments?',multi:'You can pick several',vPh:'Details, e.g. after 6 pm',
 wT:'What matters in the apartment?',wH:'Pick anything important. If nothing — just tap “Next”',wPh:'District, floor, anything else…',
 sT:'Check and send',sH:'Tap a row to edit it',toTg:'Send via Telegram',toWa:'Send via WhatsApp',copy:'Copy text',copied:'Copied',
-okT:'Thank you!',okH:'Your manager has the form. We’ll send matching options soon and arrange a viewing.',again:'Back to the form',
+okT:'Thank you!',okH:'Your manager has the form and will contact you to arrange a viewing.',again:'Back to the form',
 of:'of',empty:'not specified',
 opt:{
 country:['🇷🇺 Russia','🇺🇦 Ukraine','🇧🇾 Belarus','🇰🇿 Kazakhstan','🇮🇱 Israel','🇹🇷 Turkey','🇮🇳 India','🇺🇸 USA','🇩🇪 Germany','🇬🇪 Georgia'],
