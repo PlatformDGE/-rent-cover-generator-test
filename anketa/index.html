@@ -185,14 +185,6 @@ textarea.field{min-height:96px;resize:vertical}
     </div>
   </section>
 
-  <!-- 7 budget -->
-  <section class="step" data-s="budget">
-    <div class="count"></div>
-    <h2 data-t="bT">Комфортный бюджет в месяц</h2>
-    <p class="hint" data-t="bH">В долларах США</p>
-    <div class="chips" data-single="budget" data-free="budgetX"></div>
-    <div class="sub"><input class="field" id="budgetX" inputmode="numeric" data-ph="bPh" placeholder="Или своя сумма, $"></div>
-  </section>
 
   <!-- 8 term -->
   <section class="step" data-s="term">
@@ -267,7 +259,7 @@ textarea.field{min-height:96px;resize:vertical}
    ?tg=username      — Telegram менеджера (ответы откроются сразу в чате с ним)
    ?wa=995555123456  — WhatsApp менеджера (появится вторая кнопка)
    ?lang=en          — язык по умолчанию
-   Предзаполнение:   ?people=2&term=12&budget=800&country=Россия
+   Предзаполнение:   ?people=2&term=12&country=Россия
 */
 const Q = new URLSearchParams(location.search);
 const TG = (Q.get('tg')||'').replace(/^@/,'');
@@ -342,7 +334,7 @@ const pre=(k,arrKey)=>{const v=Q.get(k);if(v==null)return;
   if(k==='people'){S.people=Math.max(1,Math.min(15,+v||1));return}
   if(arrKey){const i=['ru','en'].map(l=>T[l].opt[arrKey].findIndex(o=>o.toLowerCase().includes(v.toLowerCase()))).find(i=>i>=0);
     if(i!=null&&i>=0)S[arrKey]=i;else if(S.hasOwnProperty(arrKey+'X'))S[arrKey+'X']=v;}};
-pre('people');pre('country','country');pre('term','term');pre('budget','budget');pre('name');if(Q.get('name'))S.name=Q.get('name');
+pre('people');pre('country','country');pre('term','term');pre('name');if(Q.get('name'))S.name=Q.get('name');
 const save=()=>{try{localStorage.setItem('rit_anketa',JSON.stringify(S))}catch(e){}};
 
 const $=id=>document.getElementById(id);
@@ -381,7 +373,7 @@ function reveal(){
   $('dateMore').classList.toggle('hide',S.date!==3);
 }
 function bindInputs(){
-  ['name','countryX','jobX','kidsX','petsX','budgetX','dateX','viewX','wishX'].forEach(id=>{
+  ['name','countryX','jobX','kidsX','petsX','dateX','viewX','wishX'].forEach(id=>{
     const el=$(id);el.value=S[id]||'';
     el.addEventListener('input',()=>{S[id]=el.value;
       const base=id.replace(/X$/,'');
@@ -420,8 +412,8 @@ function val(k){
     case 'wish':return [S.wish.sort((a,b)=>a-b).map(i=>o.wish[i].replace(/^\S+\s/,'')).join(', '),S.wishX.trim()].filter(Boolean).join('; ')||(L.no);
   }
 }
-const KEYS=['name','country','job','people','kids','pets','budget','term','date','view','wish'];
-const STEP_OF={name:'name',country:'country',job:'job',people:'people',kids:'kids',pets:'pets',budget:'budget',term:'term',date:'date',view:'view',wish:'wish'};
+const KEYS=['name','country','job','people','kids','pets','term','date','view','wish'];
+const STEP_OF={name:'name',country:'country',job:'job',people:'people',kids:'kids',pets:'pets',term:'term',date:'date',view:'view',wish:'wish'};
 
 function message(){
   const L=T[lang].L;
