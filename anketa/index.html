@@ -116,6 +116,10 @@ textarea.field{min-height:96px;resize:vertical}
     <h2 data-t="nameT">Как к вам обращаться?</h2>
     <p class="hint" data-t="nameH">Пара вопросов о вас для собственника — займёт минуту</p>
     <input class="field" id="name" autocomplete="given-name" data-ph="namePh" placeholder="Например, Анна">
+    <div class="sub" id="contactBox">
+      <label data-t="ctL">Ваш Telegram или телефон</label>
+      <input class="field" id="contact" autocomplete="tel" data-ph="ctPh" placeholder="@ник или +995…">
+    </div>
   </section>
 
   <!-- 2 country -->
@@ -213,6 +217,7 @@ textarea.field{min-height:96px;resize:vertical}
     <p class="hint" data-t="sH">Нажмите на строку, чтобы исправить</p>
     <div class="sum" id="sum"></div>
     <div class="send">
+      <button class="btn tg hide" id="sendApi" type="button" style="background:var(--navy)"><span data-t="toApi">Отправить анкету</span></button>
       <a class="btn tg" id="sendTg" href="#" target="_blank" rel="noopener">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M21.9 4.3 18.7 19.4c-.2 1-.9 1.3-1.7.8l-4.8-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2L6.5 13.2 1.8 11.7c-1-.3-1-1 .2-1.5L20.5 3c.9-.3 1.6.2 1.4 1.3Z"/></svg>
         <span data-t="toTg">Отправить в Telegram</span></a>
@@ -250,6 +255,12 @@ textarea.field{min-height:96px;resize:vertical}
 const Q = new URLSearchParams(location.search);
 const TG = (Q.get('tg')||'').replace(/^@/,'');
 const WA = (Q.get('wa')||'').replace(/\D/g,'');
+/* Куда сохранять заявки (Google-таблица + уведомление в Telegram-группу операторов).
+   Вставьте сюда адрес веб-приложения Google Apps Script (см. anketa/SETUP.md). */
+const ENDPOINT = Q.get('api') || '';
+const POST = (Q.get('post')||'').trim();          // ?post=511488 — номер поста квартиры в канале
+const CLIENT = (Q.get('u')||'').trim();           // ?u=@ник — контакт клиента, если оператор его подставил
+const POST_URL = /^\d+$/.test(POST)?`https://t.me/rent_tbilisi_ge/${POST}`:POST;
 
 const T = {
 ru:{start:'Начать',next:'Далее',finish:'Посмотреть ответы',skip:'Пропустить',
@@ -263,7 +274,7 @@ bT:'Комфортный бюджет в месяц',bH:'В долларах С�
 tT:'На какой срок аренда?',dT:'Когда хотите заселиться?',
 vT:'Когда удобно посмотреть квартиру?',vtL:'В какое время?',multi:'Можно выбрать несколько',vPh:'Уточнение, например: после 18:00',
 wT:'Что важно в квартире?',wH:'Выберите всё, что важно. Если неважно — просто жмите «Далее»',wPh:'Район, этаж, что-то ещё…',
-sT:'Проверьте и отправьте',sH:'Нажмите на строку, чтобы исправить',toTg:'Отправить в Telegram',toWa:'Отправить в WhatsApp',copy:'Скопировать текст',copied:'Текст скопирован',
+sT:'Проверьте и отправьте',sH:'Нажмите на строку, чтобы исправить',toApi:'Отправить анкету',ctL:'Ваш Telegram или телефон',ctPh:'@ник или +995…',sendErr:'Не удалось отправить. Попробуйте ещё раз или отправьте в Telegram.',toTg:'Отправить в Telegram',toWa:'Отправить в WhatsApp',copy:'Скопировать текст',copied:'Текст скопирован',
 okT:'Спасибо!',okH:'Анкета у менеджера. Он свяжется с вами, чтобы договориться о показе.',again:'Вернуться к анкете',
 of:'из',empty:'не указано',
 opt:{
@@ -275,7 +286,7 @@ term:['1–3 месяца','6 месяцев','12 месяцев','Больше 
 date:['⚡ Как можно скорее','📅 В течение 2 недель','🗓 В течение месяца','📍 Конкретная дата'],
 vday:['Сегодня','Завтра','Послезавтра','На этой неделе'],vtime:['🌅 Утро','☀️ День','🌆 Вечер','🕐 Любое время'],
 wish:['🌿 Балкон','❄️ Кондиционер','🍽 Посудомойка','🧺 Стиральная машина','🛗 Лифт','🚗 Парковка','🚇 Рядом метро','🏗 Новостройка','💻 Рабочее место','🛁 Ванна','🔥 Центр. отопление','🌇 Красивый вид']},
-L:{head:'АНКЕТА КЛИЕНТА',name:'Имя',country:'Страна / гражданство',job:'Род деятельности',people:'Проживающих',kids:'Дети',pets:'Животные',budget:'Бюджет',term:'Срок аренды',date:'Дата заселения',view:'Удобное время показа',wish:'Особые требования',no:'Нет',petPhoto:'(фото пришлю в чат)'}
+L:{head:'АНКЕТА КЛИЕНТА',flat:'Квартира',contact:'Контакт',name:'Имя',country:'Страна / гражданство',job:'Род деятельности',people:'Проживающих',kids:'Дети',pets:'Животные',budget:'Бюджет',term:'Срок аренды',date:'Дата заселения',view:'Удобное время показа',wish:'Особые требования',no:'Нет',petPhoto:'(фото пришлю в чат)'}
 },
 en:{start:'Start',next:'Next',finish:'Review answers',skip:'Skip',
 nameT:'What’s your name?',nameH:'A few questions about you for the owner — takes a minute',namePh:'e.g. Anna',
@@ -288,7 +299,7 @@ bT:'Comfortable monthly budget',bH:'In US dollars',bPh:'Or your own amount, $',
 tT:'Rental period?',dT:'When would you like to move in?',
 vT:'When can you view the apartment?',vtL:'What time?',multi:'You can pick several',vPh:'Details, e.g. after 6 pm',
 wT:'What matters in the apartment?',wH:'Pick anything important. If nothing — just tap “Next”',wPh:'District, floor, anything else…',
-sT:'Check and send',sH:'Tap a row to edit it',toTg:'Send via Telegram',toWa:'Send via WhatsApp',copy:'Copy text',copied:'Copied',
+sT:'Check and send',sH:'Tap a row to edit it',toApi:'Send the form',ctL:'Your Telegram or phone',ctPh:'@username or +995…',sendErr:'Could not send. Try again or send via Telegram.',toTg:'Send via Telegram',toWa:'Send via WhatsApp',copy:'Copy text',copied:'Copied',
 okT:'Thank you!',okH:'Your manager has the form and will contact you to arrange a viewing.',again:'Back to the form',
 of:'of',empty:'not specified',
 opt:{
@@ -300,7 +311,7 @@ term:['1–3 months','6 months','12 months','Over a year'],
 date:['⚡ As soon as possible','📅 Within 2 weeks','🗓 Within a month','📍 Specific date'],
 vday:['Today','Tomorrow','Day after tomorrow','This week'],vtime:['🌅 Morning','☀️ Afternoon','🌆 Evening','🕐 Any time'],
 wish:['🌿 Balcony','❄️ Air conditioning','🍽 Dishwasher','🧺 Washing machine','🛗 Elevator','🚗 Parking','🚇 Near metro','🏗 New building','💻 Workspace','🛁 Bathtub','🔥 Central heating','🌇 Nice view']},
-L:{head:'CLIENT FORM',name:'Name',country:'Country / citizenship',job:'Occupation',people:'Occupants',kids:'Children',pets:'Pets',budget:'Budget',term:'Rental period',date:'Move-in date',view:'Viewing time',wish:'Special requirements',no:'No',petPhoto:'(will send a photo in chat)'}
+L:{head:'CLIENT FORM',flat:'Apartment',contact:'Contact',name:'Name',country:'Country / citizenship',job:'Occupation',people:'Occupants',kids:'Children',pets:'Pets',budget:'Budget',term:'Rental period',date:'Move-in date',view:'Viewing time',wish:'Special requirements',no:'No',petPhoto:'(will send a photo in chat)'}
 }};
 
 const steps=[...document.querySelectorAll('.step')];
@@ -309,7 +320,7 @@ const QUESTIONS=ORDER.filter(s=>!['sum','done'].includes(s));
 let cur=0, lang=(Q.get('lang')==='en'||(!Q.get('lang')&&/^en/.test(navigator.language||'')&&!/ru/.test(navigator.language)))?'en':'ru';
 
 /* state: indexes (language-independent) */
-const S={name:'',country:-1,countryX:'',job:-1,jobX:'',people:1,who:-1,kidsX:'',pets:-1,petsX:'',budget:-1,budgetX:'',term:-1,date:-1,dateX:'',vday:[],vtime:[],viewX:'',wish:[],wishX:''};
+const S={name:'',contact:'',country:-1,countryX:'',job:-1,jobX:'',people:1,who:-1,kidsX:'',pets:-1,petsX:'',budget:-1,budgetX:'',term:-1,date:-1,dateX:'',vday:[],vtime:[],viewX:'',wish:[],wishX:''};
 try{Object.assign(S,JSON.parse(localStorage.getItem('rit_anketa')||'{}'))}catch(e){}
 /* prefill from link */
 const pre=(k,arrKey)=>{const v=Q.get(k);if(v==null)return;
@@ -366,7 +377,7 @@ function reveal(){
   $('dateMore').classList.toggle('hide',S.date!==3);
 }
 function bindInputs(){
-  ['name','countryX','jobX','kidsX','petsX','dateX','viewX','wishX'].forEach(id=>{
+  ['name','contact','countryX','jobX','kidsX','petsX','dateX','viewX','wishX'].forEach(id=>{
     const el=$(id);el.value=S[id]||'';
     el.addEventListener('input',()=>{S[id]=el.value;
       const base=id.replace(/X$/,'');
@@ -392,6 +403,8 @@ function val(k){
   const o=T[lang].opt, L=T[lang].L;
   switch(k){
     case 'name':return S.name.trim();
+    case 'contact':return (S.contact||CLIENT).trim();
+    case 'flat':return POST_URL;
     case 'country':return S.countryX.trim()||(S.country>=0?o.country[S.country].replace(/^\S+\s/,''):'');
     case 'job':return S.jobX.trim()||(S.job>=0?o.job[S.job].replace(/^\S+\s/,''):'');
     case 'people':return S.who>=0?`${S.people} — ${o.who[S.who].replace(/^\S+\s/,'').toLowerCase()}`:'';
@@ -405,8 +418,8 @@ function val(k){
     case 'wish':return [S.wish.sort((a,b)=>a-b).map(i=>o.wish[i].replace(/^\S+\s/,'')).join(', '),S.wishX.trim()].filter(Boolean).join('; ')||(L.no);
   }
 }
-const KEYS=['name','country','job','people','kids','pets','term','date','view','wish'];
-const STEP_OF={name:'name',country:'country',job:'job',people:'who',kids:'who',pets:'pets',term:'term',date:'date',view:'view',wish:'wish'};
+const KEYS=[...(POST_URL?['flat']:[]),'name','contact','country','job','people','kids','pets','term','date','view','wish'];
+const STEP_OF={flat:'name',contact:'name',name:'name',country:'country',job:'job',people:'who',kids:'who',pets:'pets',term:'term',date:'date',view:'view',wish:'wish'};
 
 function message(){
   const L=T[lang].L;
@@ -418,6 +431,7 @@ function renderSum(){
   $('sum').querySelectorAll('.row').forEach(r=>r.onclick=()=>{back2sum=true;show(ORDER.indexOf(STEP_OF[r.dataset.k]))});
   const msg=message();
   $('sendTg').href=TG?`https://t.me/${TG}?text=${encodeURIComponent(msg)}`:`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(msg)}`;
+  if(ENDPOINT){$('sendApi').classList.remove('hide');$('sendTg').classList.add('hide');$('copy').classList.add('hide')}
   if(WA){$('sendWa').classList.remove('hide');$('sendWa').href=`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`}
 }
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -453,8 +467,22 @@ async function copyText(){const m=message();
   try{await navigator.clipboard.writeText(m)}catch(e){const ta=document.createElement('textarea');ta.value=m;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(_){}ta.remove()}}
 $('copy').onclick=async()=>{await copyText();toast(t('copied'))};
 ['sendTg','sendWa'].forEach(id=>$(id).addEventListener('click',()=>{copyText();setTimeout(()=>show(ORDER.indexOf('done')),600)}));
+$('sendApi').onclick=async()=>{
+  const b=$('sendApi');b.disabled=true;b.style.opacity=.6;
+  const cl=lang; lang='ru';   // в таблицу и операторам — всегда по-русски
+  const data={lang:cl,post:POST_URL,operator:TG,text:message()};
+  KEYS.forEach(k=>data[k]=val(k)||'');
+  lang=cl;
+  try{
+    await fetch(ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)});
+    try{localStorage.removeItem('rit_anketa')}catch(e){}
+    show(ORDER.indexOf('done'));
+  }catch(e){toast(t('sendErr'));$('sendTg').classList.remove('hide')}
+  b.disabled=false;b.style.opacity=1;
+};
 $('again').onclick=()=>show(ORDER.indexOf('sum'));
 
+if(CLIENT)$('contactBox').classList.add('hide');
 let booted=false;bindInputs();applyLang();reveal();show(0);booted=true;
 </script>
 </body>
