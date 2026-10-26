@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cut">
-<title>Анкета арендатора · Rent in Tbilisi</title>
+<title>Анкета · Homes in Georgia</title>
 <meta name="description" content="1 минута — и мы подберём квартиру под вас">
-<meta name="theme-color" content="#1D3560">
+<meta name="theme-color" content="#032D6A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --navy:#1D3560; --navy2:#2a4a80; --red:#E1262D; --bg:#F3F5F9; --card:#fff;
+  --navy:#032D6A; --navy2:#1D3560; --red:#E1262D; --bg:#F3F5F9; --card:#fff;
   --ink:#16213a; --muted:#6b7488; --line:#e3e7ef; --chip:#f1f4f9; --ok:#1f9d55;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -21,6 +21,7 @@ button,input,textarea{font:inherit;color:inherit}
 /* header */
 .top{background:var(--navy);color:#fff;padding:14px 16px 18px;padding-top:calc(14px + env(safe-area-inset-top))}
 .top-row{display:flex;align-items:center;justify-content:space-between;max-width:560px;margin:0 auto}
+.logo{height:38px;width:auto;display:block}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.06em;font-size:14px}
 .brand svg{flex:none}
 .lang{display:flex;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
@@ -98,10 +99,7 @@ textarea.field{min-height:96px;resize:vertical}
 
 <header class="top">
   <div class="top-row">
-    <div class="brand">
-      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="#fff"/><rect x="11" y="4" width="4" height="18" fill="#E1262D"/><rect x="4" y="11" width="18" height="4" fill="#E1262D"/></svg>
-      <span>RENT IN TBILISI</span>
-    </div>
+    <img class="logo" src="logo.png" alt="Homes in Georgia" width="133" height="41">
     <div class="lang" role="group" aria-label="Language">
       <button data-l="ru" class="on">RU</button><button data-l="en">EN</button>
     </div>
@@ -111,24 +109,12 @@ textarea.field{min-height:96px;resize:vertical}
 
 <main id="app">
 
-  <!-- 0 intro -->
-  <section class="step on" data-s="intro">
-    <div class="hero">
-      <h1 data-t="introT">Подберём квартиру под вас</h1>
-      <p class="hint" data-t="introH">Ответьте на несколько вопросов — это займёт около минуты. В основном нужно просто нажимать на варианты.</p>
-      <ul class="perks">
-        <li><b>⚡</b><span data-t="p1">Без регистрации и лишних полей</span></li>
-        <li><b>🎯</b><span data-t="p2">Покажем только подходящие варианты</span></li>
-        <li><b>💬</b><span data-t="p3">Ответы уйдут менеджеру в один клик</span></li>
-      </ul>
-    </div>
-  </section>
 
   <!-- 1 name -->
   <section class="step" data-s="name">
     <div class="count"></div>
     <h2 data-t="nameT">Как к вам обращаться?</h2>
-    <p class="hint" data-t="nameH">Имя, чтобы менеджеру было удобнее</p>
+    <p class="hint" data-t="nameH">Около минуты — дальше просто нажимайте на варианты</p>
     <input class="field" id="name" autocomplete="given-name" data-ph="namePh" placeholder="Например, Анна">
   </section>
 
@@ -249,7 +235,7 @@ textarea.field{min-height:96px;resize:vertical}
 <div class="bar" id="bar">
   <div class="bar-in">
     <button class="back hide" id="back" type="button" aria-label="Назад">←</button>
-    <button class="next" id="next" type="button" data-t="start">Начать</button>
+    <button class="next" id="next" type="button" data-t="next">Далее</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -269,7 +255,7 @@ const T = {
 ru:{start:'Начать',next:'Далее',finish:'Посмотреть ответы',skip:'Пропустить',
 introT:'Подберём квартиру под вас',introH:'Ответьте на несколько вопросов — это займёт около минуты. В основном нужно просто нажимать на варианты.',
 p1:'Без регистрации и лишних полей',p2:'Покажем только подходящие варианты',p3:'Ответы уйдут менеджеру в один клик',
-nameT:'Как к вам обращаться?',nameH:'Имя, чтобы менеджеру было удобнее',namePh:'Например, Анна',
+nameT:'Как к вам обращаться?',nameH:'Около минуты — дальше просто нажимайте на варианты',namePh:'Например, Анна',
 cT:'Ваше гражданство',cH:'Выберите или впишите свою страну',cPh:'Другая страна…',
 jT:'Чем вы занимаетесь?',jH:'Собственникам важно понимать, кто будет жить в квартире',jPh:'Или напишите свой вариант',
 peT:'Сколько человек будет жить?',peH:'Включая детей',
@@ -296,7 +282,7 @@ L:{head:'АНКЕТА КЛИЕНТА',name:'Имя',country:'Страна / гр
 en:{start:'Start',next:'Next',finish:'Review answers',skip:'Skip',
 introT:'Let’s find your apartment',introH:'Answer a few quick questions — it takes about a minute. Mostly you just tap the options.',
 p1:'No sign-up, no long forms',p2:'We’ll show only places that fit',p3:'Send it to your manager in one tap',
-nameT:'What’s your name?',nameH:'So your manager knows who they’re talking to',namePh:'e.g. Anna',
+nameT:'What’s your name?',nameH:'About a minute — after this you mostly just tap options',namePh:'e.g. Anna',
 cT:'Your citizenship',cH:'Pick or type your country',cPh:'Another country…',
 jT:'What do you do?',jH:'Owners like to know who will live in the apartment',jPh:'Or type your own',
 peT:'How many people will live there?',peH:'Including children',
@@ -323,7 +309,7 @@ L:{head:'CLIENT FORM',name:'Name',country:'Country / citizenship',job:'Occupatio
 
 const steps=[...document.querySelectorAll('.step')];
 const ORDER=steps.map(s=>s.dataset.s);
-const QUESTIONS=ORDER.filter(s=>!['intro','sum','done'].includes(s));
+const QUESTIONS=ORDER.filter(s=>!['sum','done'].includes(s));
 let cur=0, lang=(Q.get('lang')==='en'||(!Q.get('lang')&&/^en/.test(navigator.language||'')&&!/ru/.test(navigator.language)))?'en':'ru';
 
 /* state: indexes (language-independent) */
@@ -435,13 +421,13 @@ function show(i){
   steps.forEach((s,j)=>s.classList.toggle('on',j===cur));
   const name=ORDER[cur], qi=QUESTIONS.indexOf(name);
   steps[cur].querySelector('.count')&&(steps[cur].querySelector('.count').textContent=`${qi+1} ${t('of')} ${QUESTIONS.length}`);
-  const p=name==='intro'?0:name==='sum'||name==='done'?100:Math.round((qi+1)/(QUESTIONS.length+1)*100);
+  const p=name==='sum'||name==='done'?100:Math.round((qi+1)/(QUESTIONS.length+1)*100);
   $('prog').style.width=p+'%';
   if(name==='sum')renderSum();
   $('bar').classList.toggle('hide',name==='sum'||name==='done');
-  $('back').classList.toggle('hide',name==='intro');
+  $('back').classList.toggle('hide',cur===0);
   updateBar();window.scrollTo({top:0,behavior:'smooth'});
-  if(name==='name')setTimeout(()=>$('name').focus({preventScroll:true}),350);
+  if(name==='name'&&!S.name&&booted)setTimeout(()=>$('name').focus({preventScroll:true}),350);
 }
 function go(d){
   if(back2sum&&d>0){back2sum=false;show(ORDER.indexOf('sum'));return}
@@ -449,7 +435,7 @@ function go(d){
 }
 function updateBar(){
   const name=ORDER[cur];
-  $('next').textContent=name==='intro'?t('start'):name==='wish'||back2sum?t('finish'):t('next');
+  $('next').textContent=name==='wish'||back2sum?t('finish'):t('next');
 }
 $('next').onclick=()=>go(1);
 $('back').onclick=()=>{if(ORDER[cur]==='sum'){show(ORDER.indexOf('wish'));return}back2sum=false;go(-1)};
@@ -462,7 +448,7 @@ $('copy').onclick=async()=>{await copyText();toast(t('copied'))};
 ['sendTg','sendWa'].forEach(id=>$(id).addEventListener('click',()=>{copyText();setTimeout(()=>show(ORDER.indexOf('done')),600)}));
 $('again').onclick=()=>show(ORDER.indexOf('sum'));
 
-bindInputs();applyLang();reveal();show(0);
+let booted=false;bindInputs();applyLang();reveal();show(0);booted=true;
 </script>
 </body>
 </html>
