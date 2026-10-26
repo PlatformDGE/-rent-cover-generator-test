@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cut">
+<title>Анкета арендатора · Rent in Tbilisi</title>
+<meta name="description" content="1 минута — и мы подберём квартиру под вас">
+<meta name="theme-color" content="#1D3560">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1D3560; --navy2:#2a4a80; --red:#E1262D; --bg:#F3F5F9; --card:#fff;
+  --ink:#16213a; --muted:#6b7488; --line:#e3e7ef; --chip:#f1f4f9; --ok:#1f9d55;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{min-height:100dvh;display:flex;flex-direction:column}
+button,input,textarea{font:inherit;color:inherit}
+
+/* header */
+.top{background:var(--navy);color:#fff;padding:14px 16px 18px;padding-top:calc(14px + env(safe-area-inset-top))}
+.top-row{display:flex;align-items:center;justify-content:space-between;max-width:560px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.06em;font-size:14px}
+.brand svg{flex:none}
+.lang{display:flex;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
+.lang button{border:0;background:none;color:#fff;opacity:.7;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer}
+.lang button.on{background:#fff;color:var(--navy);opacity:1}
+.prog{max-width:560px;margin:14px auto 0;height:5px;background:rgba(255,255,255,.18);border-radius:9px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#fff,#ffd7d8);border-radius:9px;transition:width .35s ease}
+
+main{flex:1;width:100%;max-width:560px;margin:0 auto;padding:18px 16px 120px}
+.step{display:none;animation:in .35s ease}
+.step.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.count{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:6px}
+h1{font-size:26px;line-height:1.2;margin:0 0 6px;font-weight:800;letter-spacing:-.01em}
+h2{font-size:23px;line-height:1.25;margin:0 0 6px;font-weight:800}
+.hint{color:var(--muted);font-size:15px;margin:0 0 18px;line-height:1.45}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:13px 16px;font-size:16px;font-weight:600;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:8px;min-height:50px}
+.chip:active{transform:scale(.97)}
+.chip.on{border-color:var(--navy);background:var(--navy);color:#fff}
+.chips.col{flex-direction:column}
+.chips.col .chip{width:100%;justify-content:flex-start}
+.chip .e{font-size:20px;line-height:1}
+
+.field{width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:14px 16px;font-size:17px;outline:none;transition:.15s}
+.field:focus{border-color:var(--navy);box-shadow:0 0 0 4px rgba(29,53,96,.1)}
+textarea.field{min-height:96px;resize:vertical}
+.sub{margin-top:16px}
+.sub label{display:block;font-size:14px;font-weight:700;margin:0 0 8px;color:var(--navy)}
+.hide{display:none!important}
+
+/* stepper */
+.stepper{display:flex;align-items:center;justify-content:center;gap:22px;background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:18px}
+.stepper button{width:56px;height:56px;border-radius:50%;border:0;background:var(--chip);font-size:28px;font-weight:700;color:var(--navy);cursor:pointer}
+.stepper button:active{background:#e3e8f1}
+.stepper output{font-size:44px;font-weight:800;min-width:70px;text-align:center;color:var(--navy)}
+
+.note{display:flex;gap:10px;align-items:flex-start;background:#fff6e6;border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.45;margin-top:14px;color:#6b4b00}
+
+/* intro */
+.hero{background:var(--card);border-radius:22px;padding:24px 20px;box-shadow:0 6px 24px rgba(20,35,70,.06)}
+.perks{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:10px}
+.perks li{display:flex;gap:10px;align-items:center;font-size:15px;font-weight:600}
+.perks b{width:30px;height:30px;border-radius:10px;background:var(--chip);display:grid;place-items:center;flex:none}
+
+/* summary */
+.sum{background:var(--card);border-radius:20px;padding:6px 18px;box-shadow:0 6px 24px rgba(20,35,70,.06)}
+.row{display:flex;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid var(--line);font-size:15px;cursor:pointer}
+.row:last-child{border:0}
+.row span{color:var(--muted);flex:none}
+.row b{text-align:right;font-weight:700}
+.row.empty b{color:#c4c9d4;font-weight:600}
+.send{display:grid;gap:10px;margin-top:18px}
+.btn{border:0;border-radius:16px;padding:16px;font-size:17px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none}
+.btn.tg{background:#229ED9;color:#fff}
+.btn.wa{background:#25D366;color:#fff}
+.btn.ghost{background:var(--card);border:1.5px solid var(--line);color:var(--navy)}
+.done{text-align:center;padding:30px 10px}
+.done .big{width:76px;height:76px;border-radius:50%;background:#e7f7ee;color:var(--ok);display:grid;place-items:center;margin:0 auto 14px;font-size:38px}
+
+/* bottom bar */
+.bar{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(243,245,249,0),var(--bg) 28%);padding:22px 16px calc(14px + env(safe-area-inset-bottom))}
+.bar-in{max-width:560px;margin:0 auto;display:flex;gap:10px}
+.next{flex:1;border:0;border-radius:16px;background:var(--navy);color:#fff;font-size:17px;font-weight:800;padding:17px;cursor:pointer;box-shadow:0 8px 20px rgba(29,53,96,.25)}
+.next:disabled{opacity:.35;box-shadow:none}
+.back{width:58px;border:1.5px solid var(--line);background:var(--card);border-radius:16px;font-size:22px;color:var(--navy);cursor:pointer}
+.skip{display:block;margin:16px auto 0;background:none;border:0;color:var(--muted);font-size:15px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:.25s;pointer-events:none;z-index:9}
+.toast.on{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="#fff"/><rect x="11" y="4" width="4" height="18" fill="#E1262D"/><rect x="4" y="11" width="18" height="4" fill="#E1262D"/></svg>
+      <span>RENT IN TBILISI</span>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button data-l="ru" class="on">RU</button><button data-l="en">EN</button>
+    </div>
+  </div>
+  <div class="prog"><i id="prog"></i></div>
+</header>
+
+<main id="app">
+
+  <!-- 0 intro -->
+  <section class="step on" data-s="intro">
+    <div class="hero">
+      <h1 data-t="introT">Подберём квартиру под вас</h1>
+      <p class="hint" data-t="introH">Ответьте на несколько вопросов — это займёт около минуты. В основном нужно просто нажимать на варианты.</p>
+      <ul class="perks">
+        <li><b>⚡</b><span data-t="p1">Без регистрации и лишних полей</span></li>
+        <li><b>🎯</b><span data-t="p2">Покажем только подходящие варианты</span></li>
+        <li><b>💬</b><span data-t="p3">Ответы уйдут менеджеру в один клик</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 1 name -->
+  <section class="step" data-s="name">
+    <div class="count"></div>
+    <h2 data-t="nameT">Как к вам обращаться?</h2>
+    <p class="hint" data-t="nameH">Имя, чтобы менеджеру было удобнее</p>
+    <input class="field" id="name" autocomplete="given-name" data-ph="namePh" placeholder="Например, Анна">
+  </section>
+
+  <!-- 2 country -->
+  <section class="step" data-s="country">
+    <div class="count"></div>
+    <h2 data-t="cT">Ваше гражданство</h2>
+    <p class="hint" data-t="cH">Выберите или впишите свою страну</p>
+    <div class="chips" data-single="country" data-free="countryX"></div>
+    <div class="sub"><input class="field" id="countryX" data-ph="cPh" placeholder="Другая страна…"></div>
+  </section>
+
+  <!-- 3 job -->
+  <section class="step" data-s="job">
+    <div class="count"></div>
+    <h2 data-t="jT">Чем вы занимаетесь?</h2>
+    <p class="hint" data-t="jH">Собственникам важно понимать, кто будет жить в квартире</p>
+    <div class="chips col" data-single="job" data-free="jobX"></div>
+    <div class="sub"><input class="field" id="jobX" data-ph="jPh" placeholder="Или напишите свой вариант"></div>
+  </section>
+
+  <!-- 4 people -->
+  <section class="step" data-s="people">
+    <div class="count"></div>
+    <h2 data-t="peT">Сколько человек будет жить?</h2>
+    <p class="hint" data-t="peH">Включая детей</p>
+    <div class="stepper">
+      <button type="button" data-d="-1" aria-label="−">−</button>
+      <output id="people">1</output>
+      <button type="button" data-d="1" aria-label="+">+</button>
+    </div>
+  </section>
+
+  <!-- 5 kids -->
+  <section class="step" data-s="kids">
+    <div class="count"></div>
+    <h2 data-t="kT">Есть ли дети?</h2>
+    <div class="chips" data-single="kids"></div>
+    <div class="sub hide" id="kidsMore">
+      <label data-t="kL">Сколько и какого возраста?</label>
+      <input class="field" id="kidsX" data-ph="kPh" placeholder="Например: 2 — 4 года и 9 лет">
+    </div>
+  </section>
+
+  <!-- 6 pets -->
+  <section class="step" data-s="pets">
+    <div class="count"></div>
+    <h2 data-t="aT">Есть ли домашние животные?</h2>
+    <div class="chips" data-single="pets"></div>
+    <div class="sub hide" id="petsMore">
+      <label data-t="aL">Кто и какого размера?</label>
+      <input class="field" id="petsX" data-ph="aPh" placeholder="Например: кот, 4 кг / шпиц">
+      <div class="note"><span>📸</span><span data-t="aN">Пожалуйста, пришлите фото питомца в чат вместе с анкетой — собственники так соглашаются гораздо охотнее.</span></div>
+    </div>
+  </section>
+
+  <!-- 7 budget -->
+  <section class="step" data-s="budget">
+    <div class="count"></div>
+    <h2 data-t="bT">Комфортный бюджет в месяц</h2>
+    <p class="hint" data-t="bH">В долларах США</p>
+    <div class="chips" data-single="budget" data-free="budgetX"></div>
+    <div class="sub"><input class="field" id="budgetX" inputmode="numeric" data-ph="bPh" placeholder="Или своя сумма, $"></div>
+  </section>
+
+  <!-- 8 term -->
+  <section class="step" data-s="term">
+    <div class="count"></div>
+    <h2 data-t="tT">На какой срок аренда?</h2>
+    <div class="chips" data-single="term"></div>
+  </section>
+
+  <!-- 9 date -->
+  <section class="step" data-s="date">
+    <div class="count"></div>
+    <h2 data-t="dT">Когда хотите заселиться?</h2>
+    <div class="chips col" data-single="date"></div>
+    <div class="sub hide" id="dateMore">
+      <input class="field" type="date" id="dateX">
+    </div>
+  </section>
+
+  <!-- 10 viewing -->
+  <section class="step" data-s="view">
+    <div class="count"></div>
+    <h2 data-t="vT">Когда удобно смотреть квартиры?</h2>
+    <p class="hint" data-t="multi">Можно выбрать несколько</p>
+    <div class="chips" data-multi="view"></div>
+    <div class="sub"><input class="field" id="viewX" data-ph="vPh" placeholder="Уточнение, например: после 18:00"></div>
+  </section>
+
+  <!-- 11 wishes -->
+  <section class="step" data-s="wish">
+    <div class="count"></div>
+    <h2 data-t="wT">Что важно в квартире?</h2>
+    <p class="hint" data-t="wH">Выберите всё, что важно. Если неважно — просто жмите «Далее»</p>
+    <div class="chips" data-multi="wish"></div>
+    <div class="sub"><textarea class="field" id="wishX" data-ph="wPh" placeholder="Район, этаж, что-то ещё…"></textarea></div>
+  </section>
+
+  <!-- 12 summary -->
+  <section class="step" data-s="sum">
+    <h2 data-t="sT">Проверьте и отправьте</h2>
+    <p class="hint" data-t="sH">Нажмите на строку, чтобы исправить</p>
+    <div class="sum" id="sum"></div>
+    <div class="send">
+      <a class="btn tg" id="sendTg" href="#" target="_blank" rel="noopener">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M21.9 4.3 18.7 19.4c-.2 1-.9 1.3-1.7.8l-4.8-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2L6.5 13.2 1.8 11.7c-1-.3-1-1 .2-1.5L20.5 3c.9-.3 1.6.2 1.4 1.3Z"/></svg>
+        <span data-t="toTg">Отправить в Telegram</span></a>
+      <a class="btn wa hide" id="sendWa" href="#" target="_blank" rel="noopener"><span data-t="toWa">Отправить в WhatsApp</span></a>
+      <button class="btn ghost" id="copy" type="button"><span data-t="copy">Скопировать текст</span></button>
+    </div>
+  </section>
+
+  <!-- 13 done -->
+  <section class="step" data-s="done">
+    <div class="done">
+      <div class="big">✓</div>
+      <h2 data-t="okT">Спасибо!</h2>
+      <p class="hint" data-t="okH">Анкета у менеджера. Скоро пришлём подходящие варианты и согласуем показ.</p>
+      <button class="skip" id="again" type="button" data-t="again">Вернуться к анкете</button>
+    </div>
+  </section>
+</main>
+
+<div class="bar" id="bar">
+  <div class="bar-in">
+    <button class="back hide" id="back" type="button" aria-label="Назад">←</button>
+    <button class="next" id="next" type="button" data-t="start">Начать</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== Настройки через ссылку =====
+   ?tg=username      — Telegram менеджера (ответы откроются сразу в чате с ним)
+   ?wa=995555123456  — WhatsApp менеджера (появится вторая кнопка)
+   ?lang=en          — язык по умолчанию
+   Предзаполнение:   ?people=2&term=12&budget=800&country=Россия
+*/
+const Q = new URLSearchParams(location.search);
+const TG = (Q.get('tg')||'').replace(/^@/,'');
+const WA = (Q.get('wa')||'').replace(/\D/g,'');
+
+const T = {
+ru:{start:'Начать',next:'Далее',finish:'Посмотреть ответы',skip:'Пропустить',
+introT:'Подберём квартиру под вас',introH:'Ответьте на несколько вопросов — это займёт около минуты. В основном нужно просто нажимать на варианты.',
+p1:'Без регистрации и лишних полей',p2:'Покажем только подходящие варианты',p3:'Ответы уйдут менеджеру в один клик',
+nameT:'Как к вам обращаться?',nameH:'Имя, чтобы менеджеру было удобнее',namePh:'Например, Анна',
+cT:'Ваше гражданство',cH:'Выберите или впишите свою страну',cPh:'Другая страна…',
+jT:'Чем вы занимаетесь?',jH:'Собственникам важно понимать, кто будет жить в квартире',jPh:'Или напишите свой вариант',
+peT:'Сколько человек будет жить?',peH:'Включая детей',
+kT:'Есть ли дети?',kL:'Сколько и какого возраста?',kPh:'Например: 2 — 4 года и 9 лет',
+aT:'Есть ли домашние животные?',aL:'Кто и какого размера?',aPh:'Например: кот, 4 кг / шпиц',aN:'Пожалуйста, пришлите фото питомца в чат вместе с анкетой — собственники так соглашаются гораздо охотнее.',
+bT:'Комфортный бюджет в месяц',bH:'В долларах США',bPh:'Или своя сумма, $',
+tT:'На какой срок аренда?',dT:'Когда хотите заселиться?',
+vT:'Когда удобно смотреть квартиры?',multi:'Можно выбрать несколько',vPh:'Уточнение, например: после 18:00',
+wT:'Что важно в квартире?',wH:'Выберите всё, что важно. Если неважно — просто жмите «Далее»',wPh:'Район, этаж, что-то ещё…',
+sT:'Проверьте и отправьте',sH:'Нажмите на строку, чтобы исправить',toTg:'Отправить в Telegram',toWa:'Отправить в WhatsApp',copy:'Скопировать текст',copied:'Текст скопирован',
+okT:'Спасибо!',okH:'Анкета у менеджера. Скоро пришлём подходящие варианты и согласуем показ.',again:'Вернуться к анкете',
+of:'из',empty:'не указано',
+opt:{
+country:['🇷🇺 Россия','🇺🇦 Украина','🇧🇾 Беларусь','🇰🇿 Казахстан','🇮🇱 Израиль','🇹🇷 Турция','🇮🇳 Индия','🇺🇸 США','🇩🇪 Германия','🇬🇪 Грузия'],
+job:['💻 IT / удалённая работа','🏢 Работаю в компании в Грузии','💼 Свой бизнес','🎨 Фриланс','🎓 Учёба','🌴 На пенсии / не работаю'],
+kids:['Нет','Да'],pets:['Нет','🐈 Кошка','🐕 Собака','🐾 Другое'],
+budget:['до $500','$500–700','$700–1000','$1000–1500','$1500+'],
+term:['1–3 месяца','6 месяцев','12 месяцев','Больше года'],
+date:['⚡ Как можно скорее','📅 В течение 2 недель','🗓 В течение месяца','📍 Конкретная дата'],
+view:['Будни утром','Будни днём','Будни вечером','Выходные','В любое время'],
+wish:['🌿 Балкон','❄️ Кондиционер','🍽 Посудомойка','🧺 Стиральная машина','🛗 Лифт','🚗 Парковка','🚇 Рядом метро','🏗 Новостройка','💻 Рабочее место','🛁 Ванна','🔥 Центр. отопление','🌇 Красивый вид']},
+L:{head:'АНКЕТА КЛИЕНТА',name:'Имя',country:'Страна / гражданство',job:'Род деятельности',people:'Проживающих',kids:'Дети',pets:'Животные',budget:'Бюджет',term:'Срок аренды',date:'Дата заселения',view:'Удобное время показа',wish:'Особые требования',no:'Нет',petPhoto:'(фото пришлю в чат)'}
+},
+en:{start:'Start',next:'Next',finish:'Review answers',skip:'Skip',
+introT:'Let’s find your apartment',introH:'Answer a few quick questions — it takes about a minute. Mostly you just tap the options.',
+p1:'No sign-up, no long forms',p2:'We’ll show only places that fit',p3:'Send it to your manager in one tap',
+nameT:'What’s your name?',nameH:'So your manager knows who they’re talking to',namePh:'e.g. Anna',
+cT:'Your citizenship',cH:'Pick or type your country',cPh:'Another country…',
+jT:'What do you do?',jH:'Owners like to know who will live in the apartment',jPh:'Or type your own',
+peT:'How many people will live there?',peH:'Including children',
+kT:'Any children?',kL:'How many and how old?',kPh:'e.g. 2 — aged 4 and 9',
+aT:'Any pets?',aL:'What kind and what size?',aPh:'e.g. cat, 4 kg / small dog',aN:'Please send a photo of your pet in the chat along with the form — owners agree much more readily.',
+bT:'Comfortable monthly budget',bH:'In US dollars',bPh:'Or your own amount, $',
+tT:'Rental period?',dT:'When would you like to move in?',
+vT:'When is it convenient to view apartments?',multi:'You can pick several',vPh:'Details, e.g. after 6 pm',
+wT:'What matters in the apartment?',wH:'Pick anything important. If nothing — just tap “Next”',wPh:'District, floor, anything else…',
+sT:'Check and send',sH:'Tap a row to edit it',toTg:'Send via Telegram',toWa:'Send via WhatsApp',copy:'Copy text',copied:'Copied',
+okT:'Thank you!',okH:'Your manager has the form. We’ll send matching options soon and arrange a viewing.',again:'Back to the form',
+of:'of',empty:'not specified',
+opt:{
+country:['🇷🇺 Russia','🇺🇦 Ukraine','🇧🇾 Belarus','🇰🇿 Kazakhstan','🇮🇱 Israel','🇹🇷 Turkey','🇮🇳 India','🇺🇸 USA','🇩🇪 Germany','🇬🇪 Georgia'],
+job:['💻 IT / remote work','🏢 Employed in Georgia','💼 Own business','🎨 Freelance','🎓 Student','🌴 Retired / not working'],
+kids:['No','Yes'],pets:['No','🐈 Cat','🐕 Dog','🐾 Other'],
+budget:['up to $500','$500–700','$700–1000','$1000–1500','$1500+'],
+term:['1–3 months','6 months','12 months','Over a year'],
+date:['⚡ As soon as possible','📅 Within 2 weeks','🗓 Within a month','📍 Specific date'],
+view:['Weekday mornings','Weekday afternoons','Weekday evenings','Weekends','Any time'],
+wish:['🌿 Balcony','❄️ Air conditioning','🍽 Dishwasher','🧺 Washing machine','🛗 Elevator','🚗 Parking','🚇 Near metro','🏗 New building','💻 Workspace','🛁 Bathtub','🔥 Central heating','🌇 Nice view']},
+L:{head:'CLIENT FORM',name:'Name',country:'Country / citizenship',job:'Occupation',people:'Occupants',kids:'Children',pets:'Pets',budget:'Budget',term:'Rental period',date:'Move-in date',view:'Viewing time',wish:'Special requirements',no:'No',petPhoto:'(will send a photo in chat)'}
+}};
+
+const steps=[...document.querySelectorAll('.step')];
+const ORDER=steps.map(s=>s.dataset.s);
+const QUESTIONS=ORDER.filter(s=>!['intro','sum','done'].includes(s));
+let cur=0, lang=(Q.get('lang')==='en'||(!Q.get('lang')&&/^en/.test(navigator.language||'')&&!/ru/.test(navigator.language)))?'en':'ru';
+
+/* state: indexes (language-independent) */
+const S={name:'',country:-1,countryX:'',job:-1,jobX:'',people:1,kids:-1,kidsX:'',pets:-1,petsX:'',budget:-1,budgetX:'',term:-1,date:-1,dateX:'',view:[],viewX:'',wish:[],wishX:''};
+try{Object.assign(S,JSON.parse(localStorage.getItem('rit_anketa')||'{}'))}catch(e){}
+/* prefill from link */
+const pre=(k,arrKey)=>{const v=Q.get(k);if(v==null)return;
+  if(k==='people'){S.people=Math.max(1,Math.min(15,+v||1));return}
+  if(arrKey){const i=['ru','en'].map(l=>T[l].opt[arrKey].findIndex(o=>o.toLowerCase().includes(v.toLowerCase()))).find(i=>i>=0);
+    if(i!=null&&i>=0)S[arrKey]=i;else if(S.hasOwnProperty(arrKey+'X'))S[arrKey+'X']=v;}};
+pre('people');pre('country','country');pre('term','term');pre('budget','budget');pre('name');if(Q.get('name'))S.name=Q.get('name');
+const save=()=>{try{localStorage.setItem('rit_anketa',JSON.stringify(S))}catch(e){}};
+
+const $=id=>document.getElementById(id);
+const t=k=>T[lang][k];
+
+function renderChips(){
+  document.querySelectorAll('[data-single],[data-multi]').forEach(box=>{
+    const key=box.dataset.single||box.dataset.multi, multi=!!box.dataset.multi;
+    box.innerHTML='';
+    T[lang].opt[key].forEach((label,i)=>{
+      const b=document.createElement('button');b.type='button';b.className='chip';
+      const m=label.match(/^(\p{Extended_Pictographic}[️‍\p{Extended_Pictographic}]*|\p{Regional_Indicator}{2})\s(.+)$/u);
+      b.innerHTML=m?`<span class="e">${m[1]}</span><span>${m[2]}</span>`:`<span>${label}</span>`;
+      const on=multi?S[key].includes(i):S[key]===i; if(on)b.classList.add('on');
+      b.onclick=()=>{
+        if(multi){const a=S[key];const j=a.indexOf(i);j>=0?a.splice(j,1):a.push(i);
+          if(key==='view'&&i===4&&a.includes(4))S.view=[4]; else if(key==='view'&&i!==4)S.view=S.view.filter(x=>x!==4);}
+        else{S[key]=S[key]===i?-1:i; if(box.dataset.free&&S[key]>=0){S[box.dataset.free]='';$(box.dataset.free).value=''}}
+        save();renderChips();reveal();updateBar();
+        if(!multi&&S[key]>=0&&autoAdvance(key))setTimeout(()=>go(1),260);
+      };
+      box.appendChild(b);
+    });
+  });
+}
+/* auto-advance on single choice unless a follow-up field appears */
+function autoAdvance(key){
+  if(key==='kids')return S.kids===0;
+  if(key==='pets')return S.pets===0;
+  if(key==='date')return S.date!==3;
+  return true;
+}
+function reveal(){
+  $('kidsMore').classList.toggle('hide',S.kids!==1);
+  $('petsMore').classList.toggle('hide',!(S.pets>0));
+  $('dateMore').classList.toggle('hide',S.date!==3);
+}
+function bindInputs(){
+  ['name','countryX','jobX','kidsX','petsX','budgetX','dateX','viewX','wishX'].forEach(id=>{
+    const el=$(id);el.value=S[id]||'';
+    el.addEventListener('input',()=>{S[id]=el.value;
+      const base=id.replace(/X$/,'');
+      if(id!=='name'&&['country','job','budget'].includes(base)&&el.value.trim()){S[base]=-1;renderChips();}
+      save();updateBar();});
+    if(el.tagName==='INPUT')el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();el.blur();go(1)}});
+  });
+  document.querySelectorAll('.stepper button').forEach(b=>b.onclick=()=>{
+    S.people=Math.max(1,Math.min(15,S.people+ +b.dataset.d));$('people').textContent=S.people;save();});
+  $('people').textContent=S.people;
+}
+
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-t]').forEach(el=>{const v=t(el.dataset.t);if(v)el.textContent=v});
+  document.querySelectorAll('[data-ph]').forEach(el=>el.placeholder=t(el.dataset.ph));
+  document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.l===lang));
+  renderChips();updateBar();if(ORDER[cur]==='sum')renderSum();
+}
+
+/* values in current language */
+function val(k){
+  const o=T[lang].opt, L=T[lang].L;
+  switch(k){
+    case 'name':return S.name.trim();
+    case 'country':return S.countryX.trim()||(S.country>=0?o.country[S.country].replace(/^\S+\s/,''):'');
+    case 'job':return S.jobX.trim()||(S.job>=0?o.job[S.job].replace(/^\S+\s/,''):'');
+    case 'people':return String(S.people);
+    case 'kids':return S.kids===0?L.no:S.kids===1?(S.kidsX.trim()||o.kids[1]):'';
+    case 'pets':return S.pets===0?L.no:S.pets>0?[o.pets[S.pets].replace(/^\S+\s/,''),S.petsX.trim()].filter(Boolean).join(' — ')+' '+L.petPhoto:'';
+    case 'budget':{const x=S.budgetX.trim();return x?(/^\d+$/.test(x)?'$'+x:x):(S.budget>=0?o.budget[S.budget]:'')}
+    case 'term':return S.term>=0?o.term[S.term]:'';
+    case 'date':if(S.date===3&&S.dateX){const d=new Date(S.dateX+'T12:00');return d.toLocaleDateString(lang==='ru'?'ru-RU':'en-GB',{day:'numeric',month:'long',year:'numeric'})}
+                return S.date>=0&&S.date!==3?o.date[S.date].replace(/^\S+\s/,''):'';
+    case 'view':return [S.view.sort().map(i=>o.view[i]).join(', '),S.viewX.trim()].filter(Boolean).join('; ');
+    case 'wish':return [S.wish.sort((a,b)=>a-b).map(i=>o.wish[i].replace(/^\S+\s/,'')).join(', '),S.wishX.trim()].filter(Boolean).join('; ')||(L.no);
+  }
+}
+const KEYS=['name','country','job','people','kids','pets','budget','term','date','view','wish'];
+const STEP_OF={name:'name',country:'country',job:'job',people:'people',kids:'kids',pets:'pets',budget:'budget',term:'term',date:'date',view:'view',wish:'wish'};
+
+function message(){
+  const L=T[lang].L;
+  return [`📋 ${L.head}`,'',...KEYS.map(k=>`${L[k]}: ${val(k)||'—'}`)].join('\n');
+}
+function renderSum(){
+  const L=T[lang].L;
+  $('sum').innerHTML=KEYS.map(k=>{const v=val(k);return `<div class="row${v?'':' empty'}" data-k="${k}"><span>${L[k]}</span><b>${v?esc(v):t('empty')}</b></div>`}).join('');
+  $('sum').querySelectorAll('.row').forEach(r=>r.onclick=()=>{back2sum=true;show(ORDER.indexOf(STEP_OF[r.dataset.k]))});
+  const msg=message();
+  $('sendTg').href=TG?`https://t.me/${TG}?text=${encodeURIComponent(msg)}`:`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(msg)}`;
+  if(WA){$('sendWa').classList.remove('hide');$('sendWa').href=`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`}
+}
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+let back2sum=false;
+function show(i){
+  cur=Math.max(0,Math.min(steps.length-1,i));
+  steps.forEach((s,j)=>s.classList.toggle('on',j===cur));
+  const name=ORDER[cur], qi=QUESTIONS.indexOf(name);
+  steps[cur].querySelector('.count')&&(steps[cur].querySelector('.count').textContent=`${qi+1} ${t('of')} ${QUESTIONS.length}`);
+  const p=name==='intro'?0:name==='sum'||name==='done'?100:Math.round((qi+1)/(QUESTIONS.length+1)*100);
+  $('prog').style.width=p+'%';
+  if(name==='sum')renderSum();
+  $('bar').classList.toggle('hide',name==='sum'||name==='done');
+  $('back').classList.toggle('hide',name==='intro');
+  updateBar();window.scrollTo({top:0,behavior:'smooth'});
+  if(name==='name')setTimeout(()=>$('name').focus({preventScroll:true}),350);
+}
+function go(d){
+  if(back2sum&&d>0){back2sum=false;show(ORDER.indexOf('sum'));return}
+  show(cur+d);
+}
+function updateBar(){
+  const name=ORDER[cur];
+  $('next').textContent=name==='intro'?t('start'):name==='wish'||back2sum?t('finish'):t('next');
+}
+$('next').onclick=()=>go(1);
+$('back').onclick=()=>{if(ORDER[cur]==='sum'){show(ORDER.indexOf('wish'));return}back2sum=false;go(-1)};
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{lang=b.dataset.l;applyLang();show(cur)});
+
+function toast(m){const el=$('toast');el.textContent=m;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1800)}
+async function copyText(){const m=message();
+  try{await navigator.clipboard.writeText(m)}catch(e){const ta=document.createElement('textarea');ta.value=m;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(_){}ta.remove()}}
+$('copy').onclick=async()=>{await copyText();toast(t('copied'))};
+['sendTg','sendWa'].forEach(id=>$(id).addEventListener('click',()=>{copyText();setTimeout(()=>show(ORDER.indexOf('done')),600)}));
+$('again').onclick=()=>show(ORDER.indexOf('sum'));
+
+bindInputs();applyLang();reveal();show(0);
+</script>
+</body>
+</html>
