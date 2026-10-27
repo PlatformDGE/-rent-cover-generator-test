@@ -27,3 +27,6 @@ https://platformdge.github.io/-rent-cover-generator-test/anketa/?post=511488
 - `post=511488` — номер поста квартиры в канале (из ссылки `t.me/rent_tbilisi_ge/511488`), попадёт в заявку как ссылка на квартиру.
 - `u=@ник` — контакт клиента, тогда поле контакта в анкете не показывается.
 - `lang=en` — открыть сразу на английском.
+
+---
+Made with Claude (Anthropic) · © Homes in Georgia · Created by Irakli Kvirkvelia

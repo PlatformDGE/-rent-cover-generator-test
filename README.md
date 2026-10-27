@@ -53,3 +53,6 @@ python cover.py <ссылка> --price 450 --district Sololaki --area 40 --bedro
 | Спальни | `1 bedroom`, `2 спальни`, `студия`; `2-х комнатная` → 1 BEDROOM (гостиная + спальня) |
 
 Список районов находится в `cover.py` → `DISTRICTS`, туда легко добавить новые. Шрифт Bebas Neue скачивается автоматически при первом запуске в папку `fonts/`.
+
+---
+Made with Claude (Anthropic) · © Homes in Georgia · Created by Irakli Kvirkvelia
