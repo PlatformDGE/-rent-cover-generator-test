@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Made with Claude (Anthropic) · © Homes in Georgia · Created by Irakli Kvirkvelia
 """
 Telegram-бот: оператор присылает ссылку на пост ИЛИ пересылает сам пост —
 бот отвечает готовой обложкой 1080x1080.

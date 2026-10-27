@@ -1,3 +1,4 @@
+// Made with Claude (Anthropic) · © Homes in Georgia · Created by Irakli Kvirkvelia
 /**
  * Анкета клиента → Google-таблица + уведомление в Telegram-группу операторов.
  * Вставьте этот код в Google Таблицу: Расширения → Apps Script. Инструкция: anketa/SETUP.md
