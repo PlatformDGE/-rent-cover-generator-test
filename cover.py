@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Made with Claude (Anthropic) · © Homes in Georgia · Created by Irakli Kvirkvelia
 """
 Генератор квадратной обложки (1080x1080) для Instagram / Facebook
 из поста в Telegram-канале.
