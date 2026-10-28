@@ -25,6 +25,12 @@ from pathlib import Path
 import requests
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
+try:  # HEIC/HEIF (iPhone photos)
+    from pillow_heif import register_heif_opener
+    register_heif_opener()
+except ImportError:
+    pass
+
 ROOT = Path(__file__).resolve().parent
 FONTS_DIR = ROOT / "fonts"
 

@@ -115,7 +115,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px}
       <span class="hint">Cover photo</span>
       <div id="thumbs" class="thumbs"></div>
       <div class="actions">
-        <span class="file ghost">Upload photo<input id="upload" type="file" accept="image/*"></span>
+        <span class="file ghost">Upload photo<input id="upload" type="file" accept="image/*,.heic,.heif"></span>
       </div>
     </div>
   </section>
@@ -136,7 +136,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px}
     <h2>Watermark photos</h2>
     <p class="hint" style="margin:0">Select all the listing photos at once (e.g. 8). Each one gets the RENT IN TBILISI watermark in the center.</p>
     <div class="actions">
-      <span class="file primary">Select photos<input id="wmFiles" type="file" accept="image/*" multiple></span>
+      <span class="file primary">Select photos<input id="wmFiles" type="file" accept="image/*,.heic,.heif" multiple></span>
       <button id="wmShare" class="ghost" hidden>Save all to phone</button>
     </div>
     <div id="folderBox" class="actions" hidden>
@@ -379,6 +379,40 @@ async function render(){
   },"image/png");
 }
 function loadImg(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
+/* HEIC/HEIF (iPhone) support: native decode where the browser can (Safari), otherwise convert with heic2any */
+let heicLib=null;
+function loadHeicLib(){
+  if (window.heic2any) return Promise.resolve();
+  if (!heicLib) heicLib=new Promise((res,rej)=>{
+    const sc=document.createElement("script");
+    sc.src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
+    sc.onload=()=>res(); sc.onerror=()=>{ heicLib=null; rej(new Error("Couldn't load the HEIC converter. Check the connection.")); };
+    document.head.append(sc);
+  });
+  return heicLib;
+}
+async function isHeic(file){
+  if (/heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name||"")) return true;
+  try{
+    const b=new Uint8Array(await file.slice(0,12).arrayBuffer());
+    const ftyp=String.fromCharCode(...b.slice(4,8)), brand=String.fromCharCode(...b.slice(8,12));
+    return ftyp==="ftyp" && /^(heic|heix|hevc|hevx|heim|heis|mif1|msf1)$/.test(brand);
+  }catch(_){ return false; }
+}
+// file -> {img, url}; url is an object URL the caller may revoke
+async function loadFile(file){
+  const url=URL.createObjectURL(file);
+  try { return {img:await loadImg(url), url}; }
+  catch(e){
+    URL.revokeObjectURL(url);
+    if (!(await isHeic(file))) throw new Error("Unsupported image format");
+    await loadHeicLib();
+    let out=await window.heic2any({blob:file, toType:"image/jpeg", quality:0.92});
+    if (Array.isArray(out)) out=out[0];
+    const u2=URL.createObjectURL(out);
+    return {img:await loadImg(u2), url:u2};
+  }
+}
 async function getPhoto(url){
   if (photoCache[url]) return photoCache[url];
   const blob = await fetchVia(url,true);
@@ -415,7 +449,9 @@ $("tyApt").onclick=()=>{ state.commercial=false; fillForm(); render(); };
 $("tyCom").onclick=()=>{ state.commercial=true; fillForm(); render(); };
 $("upload").onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
-  state.photo=await loadImg(URL.createObjectURL(f)); selected=-1; drawThumbs(); render(); say("Photo replaced.");
+  say("Loading photo…");
+  try{ state.photo=(await loadFile(f)).img; selected=-1; drawThumbs(); render(); say("Photo replaced."); }
+  catch(err){ say("Couldn't open this photo: "+(err.message||err), true); }
 };
 /* ---------------- watermark ---------------- */
 function drawFlag(c,x,y,w,h){
@@ -448,8 +484,7 @@ function drawWatermark(c,W,H){
 }
 let wmResults=[];
 async function watermarkFile(file){
-  const url=URL.createObjectURL(file);
-  const img=await loadImg(url);
+  const {img,url}=await loadFile(file);
   const k=Math.min(1,2560/Math.max(img.width,img.height));
   const W=Math.round(img.width*k), H=Math.round(img.height*k);
   const c=document.createElement("canvas"); c.width=W; c.height=H;
@@ -463,7 +498,7 @@ $("wmFiles").onchange=async e=>{
   const files=[...e.target.files]; if(!files.length) return;
   await document.fonts.load('100px "Bebas Neue"').catch(()=>{});
   wmResults.forEach(r=>URL.revokeObjectURL(r.url)); wmResults=[];
-  const grid=$("wmGrid"); grid.innerHTML="";
+  const grid=$("wmGrid"); grid.innerHTML=""; const failed=[];
   for (let i=0;i<files.length;i++){
     $("wmStatus").textContent=`Processing ${i+1} of ${files.length}…`;
     try{
@@ -472,10 +507,10 @@ $("wmFiles").onchange=async e=>{
       const im=document.createElement("img"); im.src=r.url; im.alt=r.name;
       const a=document.createElement("a"); a.href=r.url; a.download=r.name; a.textContent="Download";
       card.append(im,a); grid.append(card);
-    }catch(err){ /* skip unreadable file */ }
+    }catch(err){ failed.push(files[i].name); }
   }
   const n=wmResults.length;
-  $("wmStatus").textContent = n ? `Done: ${n} photo${n>1?"s":""}.` : "Couldn't read these files.";
+  $("wmStatus").textContent = (n ? `Done: ${n} photo${n>1?"s":""}.` : "Couldn't read these files.") + (failed.length ? ` Not opened: ${failed.join(", ")}.` : "");
   $("wmAll").hidden=!n;
   let canShare=false;
   try{ canShare=!!(navigator.canShare && navigator.canShare({files:[new File([wmResults[0].blob],wmResults[0].name,{type:"image/jpeg"})]})); }catch(_){}
