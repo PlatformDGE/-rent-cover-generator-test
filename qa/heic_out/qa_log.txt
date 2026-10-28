@@ -1,0 +1,15 @@
+PASS site has HEIC support deployed
+PASS HEIC test files created
+PASS cover: HEIC photo uploads — Photo replaced. px=[212, 52, 52]
+PASS watermark: 3 HEIC + 1 JPG processed — Done: 4 photos.
+PASS watermark: sizes/orientation kept — [[2560, 1920], [1920, 2560], [1600, 1200], [1600, 1200]]
+PASS watermark: output names are .jpg — ['IMG_1_wm.jpg', 'IMG_2_wm.jpg', 'IMG_3_wm.jpg', 'IMG_4_wm.jpg']
+PASS folder zip has 4 photos + 2 covers — ['Sololaki 450$/Sololaki 450$ cover.png', 'Sololaki 450$/Sololaki 450$ youtube.jpg', 'Sololaki 450$/Sololaki 450$ 1.jpg', 'Sololaki 450$/Sololaki 450$ 2.jpg', 'Sololaki 450$/Sololaki 450$ 3.jpg', 'Sololaki 450$/Sololaki 450$ 4.jpg']
+PASS no JS errors — []
+PASS Python script: HEIC photo — price:     900$
+exclusive: False
+district:  Vake
+area:      80
+bedrooms:  2 BEDROOMS
+saved:     qa/heic_out/cli.png
+
