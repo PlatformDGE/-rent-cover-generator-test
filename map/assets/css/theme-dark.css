@@ -177,7 +177,7 @@ html[data-theme="dark"] .bg-grid { background: radial-gradient(circle at 1px 1px
   html[data-theme="dark"] .header, html[data-theme="dark"] .tabbar, html[data-theme="dark"] .sheet, html[data-theme="dark"] .mega { background: rgba(18, 26, 42, .96); }
 }
 /* ---- hand-written dark tweaks ---- */
-html[data-theme="dark"] .header .logo, html[data-theme="dark"] .drawer .logo { content: url(../img/brand/logo-white.svg); }
+html[data-theme="dark"] .header .logo, html[data-theme="dark"] .drawer .logo, html[data-theme="dark"] .mbar .logo { content: url(../img/brand/logo-white.svg); }
 html[data-theme="dark"] h1, html[data-theme="dark"] h2, html[data-theme="dark"] h3 { color: var(--ink); }
 html[data-theme="dark"] .footer { background: #070C16; }
 html[data-theme="dark"] .gate.v-cards .gate-title, html[data-theme="dark"] .gate.v-cards .gate-group-head h2 { text-shadow: none; }
