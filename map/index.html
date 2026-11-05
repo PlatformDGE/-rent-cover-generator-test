@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Made with Claude (Anthropic) · © Homes in Georgia · Created by Irakli Kvirkvelia -->
+<meta name="author" content="Irakli Kvirkvelia · Homes in Georgia">
+<!-- Standalone map at hge.ge/map/: everything below resolves from the site root. -->
+
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#032D6A">
+<title>Map · Homes in Georgia</title>
+<meta name="description" content="Map of every Homes in Georgia listing in Tbilisi: rentals, sales, commercial, daily stays and cars. Filter by price, rooms and district and share the link.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Homes in Georgia — map of listings">
+<meta property="og:description" content="Rentals, sales, commercial property and cars in Tbilisi on one map.">
+<meta property="og:image" content="https://hge.ge/homes-in-georgia-splash.jpg">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Noto+Sans+Georgian:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/app.css">
+<link rel="stylesheet" href="assets/css/theme-dark.css">
+<script>try{if(localStorage.getItem('hig:theme')==='dark'){document.documentElement.dataset.theme='dark';document.querySelector('meta[name=theme-color]').content='#0B1220'}}catch(e){}</script>
+</head>
+<body class="map-standalone">
+<header id="mbar" class="mbar"></header>
+<main id="main" tabindex="-1"></main>
+<noscript><p style="padding:24px">Please enable JavaScript to open the Homes in Georgia map.</p></noscript>
+<script>document.addEventListener("click",e=>{const a=e.target.closest("a[href]");if(!a)return;const h=a.getAttribute("href");if(h.startsWith("#/")||h==="./"){e.preventDefault();e.stopPropagation();window.open("https://hge.ge/"+(h==="./"?"":h),"_blank")}},true)</script>
+<script type="module" src="assets/js/mapapp.js"></script>
+</body>
+</html>
